@@ -1,11 +1,11 @@
-"""Progress display callback for task execution."""
+"""Progress display callback for test execution."""
 
 from ..tasks.schema import StepResult
 from . import console
 
 
 class ProgressDisplay:
-    """Displays step-by-step progress during task execution."""
+    """Displays step-by-step progress during test execution."""
 
     def __init__(self, total_steps: int):
         self.total_steps = total_steps

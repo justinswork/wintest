@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RunState:
     run_id: str
-    task_name: str
+    test_name: str
     status: str  # running, completed, failed
     current_step: int = 0
     total_steps: int = 0

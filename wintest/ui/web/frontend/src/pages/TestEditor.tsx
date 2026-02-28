@@ -1,30 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useBlocker } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useTaskStore } from '../stores/taskStore';
+import { useTestStore } from '../stores/testStore';
 import { useExecutionStore } from '../stores/executionStore';
 import { StepList } from '../components/tasks/StepList';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { showToast } from '../components/common/Toast';
-import type { Task, Step } from '../api/types';
+import type { Test, Step } from '../api/types';
 import { newStep } from '../api/types';
 
-const EMPTY_TASK: Task = {
+const EMPTY_TEST: Test = {
   name: '',
   filename: null,
   steps: [newStep()],
   settings: {},
 };
 
-export function TaskEditor() {
+export function TestEditor() {
   const { t } = useTranslation();
   const { filename } = useParams<{ filename: string }>();
   const navigate = useNavigate();
-  const { fetchTask, fetchActions, saveTask, validateTask, validation, loading } = useTaskStore();
+  const { fetchTest, fetchStepTypes, saveTest, validateTest, validation, loading } = useTestStore();
   const { startRun, status } = useExecutionStore();
   const isEditing = !!filename;
 
-  const [task, setTask] = useState<Task>({ ...EMPTY_TASK, steps: [newStep()] });
+  const [test, setTest] = useState<Test>({ ...EMPTY_TEST, steps: [newStep()] });
   const [saving, setSaving] = useState(false);
   const [savedFilename, setSavedFilename] = useState<string | null>(filename ?? null);
   const [dirty, setDirty] = useState(false);
@@ -32,31 +32,31 @@ export function TaskEditor() {
   const lastLoadedRef = useRef<string | undefined>(undefined);
   const saveMenuRef = useRef<HTMLDivElement>(null);
 
-  // Load task on mount or reset state when navigating between edit and new
+  // Load test on mount or reset state when navigating between edit and new
   useEffect(() => {
     if (filename === lastLoadedRef.current) return;
     lastLoadedRef.current = filename;
 
-    useTaskStore.setState({ validation: null });
+    useTestStore.setState({ validation: null });
 
     if (filename) {
-      fetchTask(filename).then(() => {
-        const store = useTaskStore.getState();
-        if (store.currentTask) {
-          setTask(store.currentTask);
+      fetchTest(filename).then(() => {
+        const store = useTestStore.getState();
+        if (store.currentTest) {
+          setTest(store.currentTest);
           setSavedFilename(filename);
         }
       });
     } else {
-      setTask({ ...EMPTY_TASK, steps: [newStep()] });
+      setTest({ ...EMPTY_TEST, steps: [newStep()] });
       setSavedFilename(null);
     }
     setDirty(false);
-  }, [filename, fetchTask]);
+  }, [filename, fetchTest]);
 
   useEffect(() => {
-    fetchActions();
-  }, [fetchActions]);
+    fetchStepTypes();
+  }, [fetchStepTypes]);
 
   // Close save menu on outside click
   useEffect(() => {
@@ -70,8 +70,8 @@ export function TaskEditor() {
     return () => document.removeEventListener('mousedown', handler);
   }, [showSaveMenu]);
 
-  const updateTask = useCallback((updated: Task) => {
-    setTask(updated);
+  const updateTest = useCallback((updated: Test) => {
+    setTest(updated);
     setDirty(true);
   }, []);
 
@@ -80,7 +80,7 @@ export function TaskEditor() {
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
-      const leave = window.confirm(t('taskEditor.unsavedChanges'));
+      const leave = window.confirm(t('testEditor.unsavedChanges'));
       if (leave) {
         blocker.proceed();
       } else {
@@ -101,12 +101,12 @@ export function TaskEditor() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const saved = await saveTask(task, savedFilename ?? undefined);
+      const saved = await saveTest(test, savedFilename ?? undefined);
       setSavedFilename(saved);
       setDirty(false);
-      showToast(t('taskEditor.saved'));
+      showToast(t('testEditor.saved'));
     } catch {
-      showToast(t('taskEditor.saveFailed'), 'error');
+      showToast(t('testEditor.saveFailed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -115,22 +115,22 @@ export function TaskEditor() {
   const handleSaveAs = async () => {
     setShowSaveMenu(false);
 
-    const defaultName = (task.name || 'my_task')
+    const defaultName = (test.name || 'my_test')
       .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '') + '.yaml';
-    const newFilename = window.prompt(t('taskEditor.saveAsPrompt'), defaultName);
+    const newFilename = window.prompt(t('testEditor.saveAsPrompt'), defaultName);
     if (!newFilename) return;
 
     const normalized = newFilename.endsWith('.yaml') ? newFilename : newFilename + '.yaml';
 
     setSaving(true);
     try {
-      await saveTask(task, normalized);
+      await saveTest(test, normalized);
       setSavedFilename(normalized);
       setDirty(false);
-      showToast(t('taskEditor.savedAs', { filename: normalized }));
-      navigate(`/tasks/${normalized}/edit`, { replace: true });
+      showToast(t('testEditor.savedAs', { filename: normalized }));
+      navigate(`/tests/${normalized}/edit`, { replace: true });
     } catch {
-      showToast(t('taskEditor.saveFailed'), 'error');
+      showToast(t('testEditor.saveFailed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -139,7 +139,7 @@ export function TaskEditor() {
   const handleValidate = async () => {
     if (savedFilename) {
       if (dirty) await handleSave();
-      await validateTask(savedFilename);
+      await validateTest(savedFilename);
     }
   };
 
@@ -152,37 +152,37 @@ export function TaskEditor() {
   };
 
   const handleStepsChange = (steps: Step[]) => {
-    updateTask({ ...task, steps });
+    updateTest({ ...test, steps });
   };
 
   const addStep = () => {
-    updateTask({ ...task, steps: [...task.steps, newStep()] });
+    updateTest({ ...test, steps: [...test.steps, newStep()] });
   };
 
-  if (loading && isEditing) return <LoadingSpinner message={t('taskEditor.loading')} />;
+  if (loading && isEditing) return <LoadingSpinner message={t('testEditor.loading')} />;
 
   return (
-    <div className="task-editor">
+    <div className="test-editor">
       <div className="section-header">
-        <h2>{isEditing ? t('taskEditor.editTask', { name: task.name }) : t('taskEditor.newTask')}</h2>
+        <h2>{isEditing ? t('testEditor.editTest', { name: test.name }) : t('testEditor.newTest')}</h2>
         <div className="header-actions">
           {savedFilename && (
-            <button className="btn btn-secondary" onClick={handleValidate}>{t('taskEditor.validate')}</button>
+            <button className="btn btn-secondary" onClick={handleValidate}>{t('testEditor.validate')}</button>
           )}
 
           <div className="save-button-group" ref={saveMenuRef}>
             <button
               className="btn btn-primary"
               onClick={handleSave}
-              disabled={saving || !task.name || !dirty}
+              disabled={saving || !test.name || !dirty}
             >
-              {saving ? t('taskEditor.saving') : t('taskEditor.save')}
+              {saving ? t('testEditor.saving') : t('testEditor.save')}
             </button>
             {savedFilename && (
               <button
                 className="btn btn-primary save-menu-toggle"
                 onClick={() => setShowSaveMenu(!showSaveMenu)}
-                disabled={saving || !task.name}
+                disabled={saving || !test.name}
               >
                 &#x25BE;
               </button>
@@ -190,7 +190,7 @@ export function TaskEditor() {
             {showSaveMenu && (
               <div className="save-dropdown">
                 <button className="save-dropdown-item" onClick={handleSaveAs}>
-                  {t('taskEditor.saveAsNew')}
+                  {t('testEditor.saveAsNew')}
                 </button>
               </div>
             )}
@@ -202,7 +202,7 @@ export function TaskEditor() {
               onClick={handleRun}
               disabled={status === 'running'}
             >
-              {t('taskEditor.run')}
+              {t('testEditor.run')}
             </button>
           )}
         </div>
@@ -211,7 +211,7 @@ export function TaskEditor() {
       {validation && (
         <div className={`validation-box ${validation.valid ? 'valid' : 'invalid'}`}>
           {validation.valid ? (
-            <p>{t('taskEditor.valid')}</p>
+            <p>{t('testEditor.valid')}</p>
           ) : (
             <ul>{validation.issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul>
           )}
@@ -219,20 +219,20 @@ export function TaskEditor() {
       )}
 
       <div className="form-group">
-        <label>{t('taskEditor.taskName')}</label>
+        <label>{t('testEditor.testName')}</label>
         <input
           className="input"
-          value={task.name}
-          onChange={e => updateTask({ ...task, name: e.target.value })}
-          placeholder={t('taskEditor.taskNamePlaceholder')}
+          value={test.name}
+          onChange={e => updateTest({ ...test, name: e.target.value })}
+          placeholder={t('testEditor.testNamePlaceholder')}
         />
       </div>
 
       <div className="form-group">
-        <label>{t('taskEditor.steps')}</label>
-        <StepList steps={task.steps} onChange={handleStepsChange} />
+        <label>{t('testEditor.steps')}</label>
+        <StepList steps={test.steps} onChange={handleStepsChange} />
         <button className="btn btn-secondary" onClick={addStep} style={{ marginTop: '0.5rem' }}>
-          {t('taskEditor.addStep')}
+          {t('testEditor.addStep')}
         </button>
       </div>
     </div>

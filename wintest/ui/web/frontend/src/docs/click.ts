@@ -1,6 +1,6 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 
-export const clickDoc: ActionDoc = {
+export const clickDoc: StepDoc = {
   name: 'click',
   title: 'Click',
   summary: 'Click on a UI element identified by the AI model.',
@@ -16,5 +16,5 @@ export const clickDoc: ActionDoc = {
     },
   ],
   example:
-    '- action: click\n  target: "File menu"\n  description: "Open the File menu"',
+    '- type: click\n  target: "File menu"\n  description: "Open the File menu"',
 };

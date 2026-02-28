@@ -41,7 +41,7 @@ export function ReportList() {
               onClick={() => navigate(`/reports/${report.report_id}`)}
             >
               <div className="card-row">
-                <h3>{report.task_name}</h3>
+                <h3>{report.test_name}</h3>
                 <StatusBadge passed={report.passed} />
               </div>
               <p className="text-muted">

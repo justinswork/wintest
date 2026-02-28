@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import state as state_module
 from .state import AppState
-from .routes import tasks, execution, reports, ws
+from .routes import tests, test_suites, execution, reports, ws
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,8 @@ def create_app(settings) -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
+    app.include_router(tests.router, prefix="/api/tests", tags=["tests"])
+    app.include_router(test_suites.router, prefix="/api/test-suites", tags=["test-suites"])
     app.include_router(execution.router, prefix="/api/execution", tags=["execution"])
     app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
     app.add_api_websocket_route("/api/ws/execution", ws.execution_ws)

@@ -29,7 +29,7 @@ export function ExecutionViewer() {
   return (
     <div className="execution-viewer">
       <div className="section-header">
-        <h2>{store.taskName ? t('execution.titleWithTask', { name: store.taskName }) : t('execution.title')}</h2>
+        <h2>{store.testName ? t('execution.titleWithTask', { name: store.testName }) : t('execution.title')}</h2>
         <span className={`execution-status status-${store.status}`}>
           {t(STATUS_KEYS[store.status] ?? 'execution.idle')}
         </span>

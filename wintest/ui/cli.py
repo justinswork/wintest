@@ -49,25 +49,25 @@ def cli(ctx, config, verbose):
 # -- wintest run ----------------------------------------------------
 
 @cli.command()
-@click.argument("task_file", type=click.Path(exists=True))
+@click.argument("test_file", type=click.Path(exists=True))
 @click.option("--no-report", is_flag=True, help="Skip report generation.")
 @click.pass_context
-def run(ctx, task_file, no_report):
-    """Execute a test task from a YAML file."""
+def run(ctx, test_file, no_report):
+    """Execute a test from a YAML file."""
     settings = ctx.obj["settings"]
 
     from ..core.vision import VisionModel
     from ..core.screen import ScreenCapture
     from ..core.actions import ActionExecutor
     from ..core.agent import Agent
-    from ..tasks.loader import load_task
-    from ..tasks.runner import TaskRunner
+    from ..tasks.loader import load_test
+    from ..tasks.runner import TestRunner
     from .progress import ProgressDisplay
 
-    console.header(f"\n  wintest run: {task_file}\n")
+    console.header(f"\n  wintest run: {test_file}\n")
 
     try:
-        task = load_task(task_file, settings=settings)
+        test = load_test(test_file, settings=settings)
     except ValueError as e:
         console.error(str(e))
         sys.exit(2)
@@ -81,70 +81,137 @@ def run(ctx, task_file, no_report):
     actions = ActionExecutor(action_settings=settings.action)
     agent = Agent(vision, screen, actions)
 
-    runner = TaskRunner(agent, settings=settings)
+    runner = TestRunner(agent, settings=settings)
 
     if no_report:
         runner.skip_report = True
 
-    console.info(f"Task: {task.name}")
-    console.info(f"Steps: {len(task.steps)}")
+    console.info(f"Test: {test.name}")
+    console.info(f"Steps: {len(test.steps)}")
 
-    progress = ProgressDisplay(total_steps=len(task.steps))
-    result = runner.run(task, progress_callback=progress)
+    progress = ProgressDisplay(total_steps=len(test.steps))
+    result = runner.run(test, progress_callback=progress)
 
-    console.task_result_banner(task.name, result.passed, result.summary)
+    console.test_result_banner(test.name, result.passed, result.summary)
 
     sys.exit(0 if result.passed else 1)
+
+
+# -- wintest run-test-suite ------------------------------------------
+
+@cli.command("run-test-suite")
+@click.argument("suite_file", type=click.Path(exists=True))
+@click.option("--no-report", is_flag=True, help="Skip report generation.")
+@click.pass_context
+def run_test_suite(ctx, suite_file, no_report):
+    """Execute a test suite from a YAML file."""
+    settings = ctx.obj["settings"]
+
+    from ..core.vision import VisionModel
+    from ..core.screen import ScreenCapture
+    from ..core.actions import ActionExecutor
+    from ..core.agent import Agent
+    from ..tasks.test_suite_loader import load_test_suite
+    from ..tasks.test_suite_runner import TestSuiteRunner
+    from ..tasks.runner import TestRunner
+
+    console.header(f"\n  wintest run-test-suite: {suite_file}\n")
+
+    try:
+        suite = load_test_suite(suite_file)
+    except ValueError as e:
+        console.error(str(e))
+        sys.exit(2)
+
+    console.info("Loading AI model...")
+    vision = VisionModel(model_settings=settings.model)
+    vision.load()
+    console.success("Model loaded.")
+
+    screen = ScreenCapture(coordinate_scale=settings.action.coordinate_scale)
+    actions = ActionExecutor(action_settings=settings.action)
+    agent = Agent(vision, screen, actions)
+
+    runner = TestRunner(agent, settings=settings)
+    if no_report:
+        runner.skip_report = True
+
+    suite_runner = TestSuiteRunner(runner, settings=settings)
+
+    console.info(f"Suite: {suite.name}")
+    console.info(f"Tests: {len(suite.test_paths)}")
+
+    def on_test_start(idx, name, total):
+        console.info(f"\n[Test {idx}/{total}] {name}")
+
+    def on_test_complete(idx, result):
+        status = "PASS" if result.passed else "FAIL"
+        summary = result.summary
+        console.info(
+            f"  -> {status}: {summary['passed']}/{summary['total']} steps passed"
+        )
+
+    suite_result = suite_runner.run(
+        suite,
+        on_test_start=on_test_start,
+        on_test_complete=on_test_complete,
+    )
+
+    console.test_suite_result_banner(
+        suite.name, suite_result.passed, suite_result.summary
+    )
+
+    sys.exit(0 if suite_result.passed else 1)
 
 
 # -- wintest validate -----------------------------------------------
 
 @cli.command()
-@click.argument("task_file", type=click.Path(exists=True))
+@click.argument("test_file", type=click.Path(exists=True))
 @click.pass_context
-def validate(ctx, task_file):
-    """Validate a task YAML file for errors."""
+def validate(ctx, test_file):
+    """Validate a test YAML file for errors."""
     settings = ctx.obj["settings"]
 
-    from ..tasks.loader import load_task
-    from ..tasks.validator import validate_task
+    from ..tasks.loader import load_test
+    from ..tasks.validator import validate_test
 
-    console.header(f"\n  Validating: {task_file}\n")
+    console.header(f"\n  Validating: {test_file}\n")
 
     try:
-        task = load_task(task_file, settings=settings)
+        test = load_test(test_file, settings=settings)
     except ValueError as e:
         console.error(f"Structural error: {e}")
         sys.exit(1)
 
-    console.success("Structure: OK (name, steps, action types)")
+    console.success("Structure: OK (name, steps, step types)")
 
-    issues = validate_task(task)
+    issues = validate_test(test)
     if issues:
         console.warning(f"Found {len(issues)} issue(s):")
         for issue in issues:
             console.warning(f"  - {issue}")
         sys.exit(1)
 
-    console.success(f"Semantics: OK ({len(task.steps)} steps validated)")
-    console.success(f"\n  {task_file} is valid.\n")
+    console.success(f"Semantics: OK ({len(test.steps)} steps validated)")
+    console.success(f"\n  {test_file} is valid.\n")
 
 
 # -- wintest init ---------------------------------------------------
 
 @cli.command()
-@click.argument("output", default="task.yaml", type=click.Path())
+@click.argument("output", default="test.yaml", type=click.Path())
 @click.option("--force", "-f", is_flag=True, help="Overwrite existing file.")
 def init(output, force):
-    """Generate a template task YAML file."""
-    from .templates import TASK_TEMPLATE
+    """Generate a template test YAML file."""
+    from .templates import TEST_TEMPLATE
 
     if os.path.exists(output) and not force:
         console.error(f"File already exists: {output}. Use --force to overwrite.")
         sys.exit(1)
 
     with open(output, "w") as f:
-        f.write(TASK_TEMPLATE)
+        f.write(TEST_TEMPLATE)
 
     console.success(f"Created template: {output}")
     console.info("Edit this file to define your test steps, then run:")
@@ -152,12 +219,12 @@ def init(output, force):
     console.info(f"  wintest run {output}")
 
 
-# -- wintest list-actions --------------------------------------------
+# -- wintest list-steps ---------------------------------------------
 
-@cli.command("list-actions")
-def list_actions():
-    """Show all available action types with descriptions."""
-    console.header("\n  Available Actions\n")
+@cli.command("list-steps")
+def list_steps():
+    """Show all available step types with descriptions."""
+    console.header("\n  Available Steps\n")
 
     for defn in registry.all_definitions():
         name = click.style(defn.name, bold=True)

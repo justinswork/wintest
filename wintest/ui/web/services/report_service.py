@@ -28,7 +28,7 @@ def list_reports() -> list[ReportSummary]:
             summary = data.get("summary", {})
             summaries.append(ReportSummary(
                 report_id=report_dir.name,
-                task_name=data.get("task_name", "Unknown"),
+                test_name=data.get("test_name", data.get("task_name", "Unknown")),
                 passed=data.get("passed", False),
                 total=summary.get("total", 0),
                 passed_count=summary.get("passed", 0),

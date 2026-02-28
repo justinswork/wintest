@@ -1,20 +1,29 @@
 import axios from 'axios';
-import type { Task, TaskListItem, ActionInfo, ValidationResult, ReportSummary, ReportData, RunResponse, RunStatus } from './types';
+import type { Test, TestListItem, StepInfo, ValidationResult, ReportSummary, ReportData, RunResponse, RunStatus, TestSuite, TestSuiteListItem, RunTestSuiteResponse } from './types';
 
 const api = axios.create({ baseURL: '/api' });
 
-export const taskApi = {
-  list: () => api.get<TaskListItem[]>('/tasks').then(r => r.data),
-  get: (filename: string) => api.get<Task>(`/tasks/${filename}`).then(r => r.data),
-  create: (task: Task) => api.post('/tasks', task).then(r => r.data),
-  update: (filename: string, task: Task) => api.put(`/tasks/${filename}`, task).then(r => r.data),
-  delete: (filename: string) => api.delete(`/tasks/${filename}`).then(r => r.data),
-  validate: (filename: string) => api.post<ValidationResult>(`/tasks/${filename}/validate`).then(r => r.data),
-  actions: () => api.get<ActionInfo[]>('/tasks/actions').then(r => r.data),
+export const testApi = {
+  list: () => api.get<TestListItem[]>('/tests').then(r => r.data),
+  get: (filename: string) => api.get<Test>(`/tests/${filename}`).then(r => r.data),
+  create: (test: Test) => api.post('/tests', test).then(r => r.data),
+  update: (filename: string, test: Test) => api.put(`/tests/${filename}`, test).then(r => r.data),
+  delete: (filename: string) => api.delete(`/tests/${filename}`).then(r => r.data),
+  validate: (filename: string) => api.post<ValidationResult>(`/tests/${filename}/validate`).then(r => r.data),
+  stepTypes: () => api.get<StepInfo[]>('/tests/steps').then(r => r.data),
+};
+
+export const testSuiteApi = {
+  list: () => api.get<TestSuiteListItem[]>('/test-suites').then(r => r.data),
+  get: (filename: string) => api.get<TestSuite>(`/test-suites/${filename}`).then(r => r.data),
+  create: (testSuite: TestSuite) => api.post('/test-suites', testSuite).then(r => r.data),
+  update: (filename: string, testSuite: TestSuite) => api.put(`/test-suites/${filename}`, testSuite).then(r => r.data),
+  delete: (filename: string) => api.delete(`/test-suites/${filename}`).then(r => r.data),
 };
 
 export const executionApi = {
-  run: (taskFile: string) => api.post<RunResponse>('/execution/run', { task_file: taskFile }).then(r => r.data),
+  run: (testFile: string) => api.post<RunResponse>('/execution/run', { test_file: testFile }).then(r => r.data),
+  runTestSuite: (suiteFile: string) => api.post<RunTestSuiteResponse>('/execution/run-test-suite', { suite_file: suiteFile }).then(r => r.data),
   status: () => api.get<RunStatus>('/execution/status').then(r => r.data),
   modelStatus: () => api.get<{ status: string }>('/execution/model-status').then(r => r.data),
   loadModel: () => api.post('/execution/load-model').then(r => r.data),

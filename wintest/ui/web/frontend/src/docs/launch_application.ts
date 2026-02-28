@@ -1,11 +1,11 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 
-export const launchApplicationDoc: ActionDoc = {
+export const launchApplicationDoc: StepDoc = {
   name: 'launch_application',
   title: 'Launch Application',
   summary: 'Launch an application and manage its window.',
   description:
-    'Starts an application from the given path and optionally identifies its window by title for automated focus management. Once launched, the runner will automatically bring the application window to the foreground before each subsequent step. Can be used multiple times in a task to launch different applications.',
+    'Starts an application from the given path and optionally identifies its window by title for automated focus management. Once launched, the runner will automatically bring the application window to the foreground before each subsequent step. Can be used multiple times in a test to launch different applications.',
   parameters: [
     {
       name: 'app_path',
@@ -30,5 +30,5 @@ export const launchApplicationDoc: ActionDoc = {
     },
   ],
   example:
-    '- action: launch_application\n  app_path: "notepad.exe"\n  app_title: "Notepad"\n  wait_seconds: 3\n  description: "Launch Notepad"',
+    '- type: launch_application\n  app_path: "notepad.exe"\n  app_title: "Notepad"\n  wait_seconds: 3\n  description: "Launch Notepad"',
 };

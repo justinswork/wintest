@@ -1,12 +1,12 @@
-"""Semantic validation for task YAML files beyond basic schema checks."""
+"""Semantic validation for test YAML files beyond basic schema checks."""
 
-from .schema import TaskDefinition
+from .schema import TestDefinition
 from ..steps import registry
 
 
-def validate_task(task: TaskDefinition) -> list[str]:
+def validate_test(test: TestDefinition) -> list[str]:
     """
-    Run semantic checks on a loaded TaskDefinition.
+    Run semantic checks on a loaded TestDefinition.
 
     Returns a list of issue strings. Empty list means valid.
     The loader already guarantees structural validity, so this
@@ -14,10 +14,10 @@ def validate_task(task: TaskDefinition) -> list[str]:
     """
     issues = []
 
-    for i, step in enumerate(task.steps, 1):
+    for i, step in enumerate(test.steps, 1):
         defn = registry.get(step.action)
         if defn is None:
-            issues.append(f"Step {i}: unknown action '{step.action}'")
+            issues.append(f"Step {i}: unknown step type '{step.action}'")
             continue
         issues.extend(defn.validate(step, i))
 

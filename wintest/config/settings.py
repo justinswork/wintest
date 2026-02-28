@@ -36,7 +36,7 @@ class RetrySettings:
 @dataclass
 class TimeoutSettings:
     step_timeout: float = 60.0
-    task_timeout: float = 600.0
+    test_timeout: float = 600.0
 
 
 @dataclass
@@ -68,8 +68,8 @@ class Settings:
     Resolution order:
       1. Hardcoded defaults (this dataclass)
       2. config.yaml (merged on top)
-      3. Task YAML settings: block (merged on top)
-      4. Per-step overrides (handled at runtime)
+      3. Test YAML settings: block (merged on top)
+      4. Per-action overrides (handled at runtime)
     """
 
     model: ModelSettings = field(default_factory=ModelSettings)
@@ -90,10 +90,10 @@ class Settings:
             settings._merge(data)
         return settings
 
-    def merge_task_settings(self, task_settings: dict) -> Settings:
-        """Return a new Settings with task-level overrides applied."""
+    def merge_test_settings(self, test_settings: dict) -> Settings:
+        """Return a new Settings with test-level overrides applied."""
         merged = copy.deepcopy(self)
-        merged._merge(task_settings)
+        merged._merge(test_settings)
         return merged
 
     def _merge(self, data: dict) -> None:
@@ -114,7 +114,7 @@ class Settings:
                     if hasattr(obj, key):
                         setattr(obj, key, value)
 
-        # Flat key compatibility with existing task YAML format
+        # Flat key compatibility with existing test YAML format
         if "retry_attempts" in data:
             self.retry.retry_attempts = data["retry_attempts"]
         if "retry_delay" in data:

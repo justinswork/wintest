@@ -20,27 +20,27 @@ class StepModel(BaseModel):
     app_title: str | None = None
 
 
-class TaskModel(BaseModel):
+class TestModel(BaseModel):
     name: str
     filename: str | None = None
     steps: list[StepModel]
     settings: dict = {}
 
 
-class TaskListItem(BaseModel):
+class TestListItem(BaseModel):
     filename: str
     name: str
     step_count: int
 
 
 class RunRequest(BaseModel):
-    task_file: str
+    test_file: str
 
 
 class RunResponse(BaseModel):
     run_id: str
     status: str
-    task_name: str
+    test_name: str
     total_steps: int
 
 
@@ -58,7 +58,7 @@ class StepResultModel(BaseModel):
 class RunStatus(BaseModel):
     run_id: str | None = None
     status: str  # idle, running, completed, failed
-    task_name: str | None = None
+    test_name: str | None = None
     current_step: int | None = None
     total_steps: int | None = None
     step_results: list[StepResultModel] = []
@@ -70,7 +70,7 @@ class ModelStatus(BaseModel):
 
 class ReportSummary(BaseModel):
     report_id: str
-    task_name: str
+    test_name: str
     passed: bool
     total: int
     passed_count: int
@@ -89,8 +89,34 @@ class FieldInfo(BaseModel):
     required: bool = False
 
 
-class ActionInfo(BaseModel):
+class StepInfo(BaseModel):
     name: str
     description: str
     required_fields: list[str]
     fields: list[FieldInfo] = []
+
+
+class TestSuiteModel(BaseModel):
+    name: str
+    filename: str | None = None
+    description: str = ""
+    test_paths: list[str]
+    settings: dict = {}
+
+
+class TestSuiteListItem(BaseModel):
+    filename: str
+    name: str
+    description: str = ""
+    test_count: int
+
+
+class RunTestSuiteRequest(BaseModel):
+    suite_file: str
+
+
+class RunTestSuiteResponse(BaseModel):
+    run_id: str
+    status: str
+    suite_name: str
+    total_tests: int

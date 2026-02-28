@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from typing import Optional
 
-from .schema import TaskDefinition, TaskResult, StepResult
+from .schema import TestDefinition, TestResult, StepResult
 from ..steps import registry
 from ..core.agent import Agent
 from ..config.settings import Settings
@@ -14,8 +14,8 @@ from ..reporting.reporter import ReportGenerator
 logger = logging.getLogger(__name__)
 
 
-class TaskRunner:
-    """Runs a complete task definition through the agent."""
+class TestRunner:
+    """Runs a complete test definition through the agent."""
 
     def __init__(self, agent: Agent, settings: Settings = None):
         self.agent = agent
@@ -24,32 +24,32 @@ class TaskRunner:
         self._app_manager: Optional[ApplicationManager] = None
         self._recovery: Optional[RecoveryStrategy] = None
 
-    def run(self, task: TaskDefinition, progress_callback=None) -> TaskResult:
-        """Execute all steps in a task definition."""
-        effective = self.settings.merge_task_settings(task.settings)
+    def run(self, test: TestDefinition, progress_callback=None) -> TestResult:
+        """Execute all steps in a test definition."""
+        effective = self.settings.merge_test_settings(test.settings)
 
-        report_dir = self._create_report_dir(task.name)
+        report_dir = self._create_report_dir(test.name)
         self.agent.report_dir = report_dir
 
         logger.info("=" * 40)
-        logger.info("TASK: %s", task.name)
-        logger.info("STEPS: %d", len(task.steps))
+        logger.info("TEST: %s", test.name)
+        logger.info("STEPS: %d", len(test.steps))
         logger.info("=" * 40)
 
-        fail_fast = task.settings.get("fail_fast", True)
-        task_deadline = time.time() + effective.timeout.task_timeout
+        fail_fast = test.settings.get("fail_fast", True)
+        test_deadline = time.time() + effective.timeout.test_timeout
         results = []
 
-        for i, step in enumerate(task.steps, 1):
-            # Task-level timeout check
-            if time.time() > task_deadline:
+        for i, step in enumerate(test.steps, 1):
+            # Test-level timeout check
+            if time.time() > test_deadline:
                 logger.error(
-                    "Task timeout (%.0fs) exceeded.", effective.timeout.task_timeout
+                    "Test timeout (%.0fs) exceeded.", effective.timeout.test_timeout
                 )
                 results.append(StepResult(
                     step=step,
                     passed=False,
-                    error=f"Task timeout ({effective.timeout.task_timeout}s) exceeded",
+                    error=f"Test timeout ({effective.timeout.test_timeout}s) exceeded",
                 ))
                 break
 
@@ -58,7 +58,7 @@ class TaskRunner:
                 self._app_manager.focus()
 
             label = step.description or step.action
-            logger.info("[Step %d/%d] %s...", i, len(task.steps), label)
+            logger.info("[Step %d/%d] %s...", i, len(test.steps), label)
 
             if progress_callback:
                 progress_callback.on_step_start(i, label)
@@ -126,32 +126,32 @@ class TaskRunner:
                 logger.info("Fail-fast enabled, stopping execution.")
                 break
 
-        task_result = TaskResult(task_name=task.name, step_results=results)
-        self._print_summary(task_result)
+        test_result = TestResult(test_name=test.name, step_results=results)
+        self._print_summary(test_result)
 
         # Generate reports
         if not self.skip_report:
             reporter = ReportGenerator(report_dir)
-            html_path = reporter.generate(task_result)
+            html_path = reporter.generate(test_result)
             logger.info("Report: %s", html_path)
 
         if self._app_manager:
             self._app_manager.close()
 
-        return task_result
+        return test_result
 
     @staticmethod
-    def _create_report_dir(task_name: str) -> str:
+    def _create_report_dir(test_name: str) -> str:
         """Create a timestamped report directory under reports/."""
-        safe_name = re.sub(r"[^\w\-]", "_", task_name)
+        safe_name = re.sub(r"[^\w\-]", "_", test_name)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
         report_dir = os.path.join("reports", f"{timestamp}_{safe_name}")
         os.makedirs(report_dir, exist_ok=True)
         return report_dir
 
     @staticmethod
-    def _print_summary(result: TaskResult):
-        """Print a summary of the task results."""
+    def _print_summary(result: TestResult):
+        """Print a summary of the test results."""
         summary = result.summary
         status = "PASSED" if result.passed else "FAILED"
         logger.info("=" * 40)

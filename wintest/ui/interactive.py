@@ -46,37 +46,37 @@ def parse_command(text: str) -> Step | None:
     if not text:
         return None
 
-    for pattern, action in COMMAND_PATTERNS:
+    for pattern, step_type in COMMAND_PATTERNS:
         match = re.match(pattern, text, re.IGNORECASE)
         if not match:
             continue
 
-        if action in ("click", "double_click", "right_click", "verify"):
-            return Step(action=action, target=match.group(1).strip())
+        if step_type in ("click", "double_click", "right_click", "verify"):
+            return Step(action=step_type, target=match.group(1).strip())
 
-        if action == "type":
-            return Step(action=action, text=match.group(1))
+        if step_type == "type":
+            return Step(action=step_type, text=match.group(1))
 
-        if action == "press_key":
-            return Step(action=action, key=match.group(1).strip().lower())
+        if step_type == "press_key":
+            return Step(action=step_type, key=match.group(1).strip().lower())
 
-        if action == "hotkey":
+        if step_type == "hotkey":
             keys = [
                 k.strip().lower()
                 for k in match.group(1).replace("+", " ").split()
             ]
-            return Step(action=action, keys=keys)
+            return Step(action=step_type, keys=keys)
 
-        if action == "scroll":
+        if step_type == "scroll":
             direction = match.group(1).lower()
             amount = int(match.group(2)) if match.group(2) else 3
             return Step(
-                action=action,
+                action=step_type,
                 scroll_amount=amount if direction == "up" else -amount,
             )
 
-        if action == "wait":
-            return Step(action=action, wait_seconds=float(match.group(1)))
+        if step_type == "wait":
+            return Step(action=step_type, wait_seconds=float(match.group(1)))
 
     return None
 

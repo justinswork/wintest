@@ -6,7 +6,7 @@ import { executionApi } from '../api/client';
 interface ExecutionState {
   status: 'idle' | 'running' | 'completed' | 'failed';
   runId: string | null;
-  taskName: string | null;
+  testName: string | null;
   currentStep: number;
   totalSteps: number;
   currentLabel: string | null;
@@ -24,7 +24,7 @@ interface ExecutionState {
 export const useExecutionStore = create<ExecutionState>((set) => ({
   status: 'idle',
   runId: null,
-  taskName: null,
+  testName: null,
   currentStep: 0,
   totalSteps: 0,
   currentLabel: null,
@@ -38,7 +38,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
         set({
           status: 'running',
           runId: msg.run_id ?? null,
-          taskName: msg.task_name ?? null,
+          testName: msg.test_name ?? null,
           totalSteps: msg.total_steps ?? 0,
           currentStep: 0,
           stepResults: [],
@@ -61,7 +61,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
             stepResults: [...state.stepResults, {
               step_num: stepNum,
               description: msg.label ?? '',
-              action: '',
+              action: msg.action ?? '',
               passed: msg.passed ?? false,
               duration_seconds: msg.duration_seconds ?? 0,
               error: msg.error ?? null,
@@ -93,7 +93,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
         set({
           status: (msg.status as ExecutionState['status']) ?? 'idle',
           runId: msg.run_id ?? null,
-          taskName: msg.task_name ?? null,
+          testName: msg.test_name ?? null,
           currentStep: msg.current_step ?? 0,
           totalSteps: msg.total_steps ?? 0,
           stepResults: msg.step_results ?? [],
@@ -108,7 +108,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
       const res = await executionApi.run(taskFile);
       set({
         runId: res.run_id,
-        taskName: res.task_name,
+        testName: res.test_name,
         totalSteps: res.total_steps,
       });
     } catch (err: unknown) {
@@ -127,7 +127,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
     set({
       status: (status.status as ExecutionState['status']),
       runId: status.run_id,
-      taskName: status.task_name,
+      testName: status.test_name,
       currentStep: status.current_step ?? 0,
       totalSteps: status.total_steps ?? 0,
     });
@@ -138,7 +138,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
   reset: () => set({
     status: 'idle',
     runId: null,
-    taskName: null,
+    testName: null,
     currentStep: 0,
     totalSteps: 0,
     currentLabel: null,

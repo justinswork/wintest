@@ -5,24 +5,24 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from ..tasks.schema import TaskResult
+from ..tasks.schema import TestResult
 
 
 class ReportGenerator:
-    """Generates JSON and HTML reports from task results."""
+    """Generates JSON and HTML reports from test results."""
 
     def __init__(self, report_dir: str):
         self.report_dir = Path(report_dir)
 
-    def generate(self, result: TaskResult) -> str:
+    def generate(self, result: TestResult) -> str:
         """Generate both JSON and HTML reports. Returns the HTML path."""
         self.generate_json(result)
         return self.generate_html(result)
 
-    def generate_json(self, result: TaskResult) -> str:
-        """Serialize TaskResult to a JSON file."""
+    def generate_json(self, result: TestResult) -> str:
+        """Serialize TestResult to a JSON file."""
         data = {
-            "task_name": result.task_name,
+            "test_name": result.test_name,
             "passed": result.passed,
             "summary": result.summary,
             "generated_at": datetime.now().isoformat(),
@@ -49,8 +49,8 @@ class ReportGenerator:
 
         return str(json_path)
 
-    def generate_html(self, result: TaskResult) -> str:
-        """Render the Jinja2 HTML template with task results."""
+    def generate_html(self, result: TestResult) -> str:
+        """Render the Jinja2 HTML template with test results."""
         template_dir = Path(__file__).parent / "templates"
         env = Environment(loader=FileSystemLoader(str(template_dir)))
         template = env.get_template("report.html")
@@ -78,7 +78,7 @@ class ReportGenerator:
             })
 
         html = template.render(
-            task_name=result.task_name,
+            test_name=result.test_name,
             passed=result.passed,
             summary=result.summary,
             generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

@@ -1,6 +1,6 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 
-export const hotkeyDoc: ActionDoc = {
+export const hotkeyDoc: StepDoc = {
   name: 'hotkey',
   title: 'Hotkey',
   summary: 'Press a key combination.',
@@ -16,5 +16,5 @@ export const hotkeyDoc: ActionDoc = {
     },
   ],
   example:
-    '- action: hotkey\n  keys: ["ctrl", "s"]\n  description: "Save the file"',
+    '- type: hotkey\n  keys: ["ctrl", "s"]\n  description: "Save the file"',
 };

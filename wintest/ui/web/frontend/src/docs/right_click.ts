@@ -1,6 +1,6 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 
-export const rightClickDoc: ActionDoc = {
+export const rightClickDoc: StepDoc = {
   name: 'right_click',
   title: 'Right Click',
   summary: 'Right-click on a UI element.',
@@ -16,5 +16,5 @@ export const rightClickDoc: ActionDoc = {
     },
   ],
   example:
-    '- action: right_click\n  target: "the selected text"\n  description: "Open context menu on selection"',
+    '- type: right_click\n  target: "the selected text"\n  description: "Open context menu on selection"',
 };

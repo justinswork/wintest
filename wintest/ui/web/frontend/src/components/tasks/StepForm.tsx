@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Step, FieldInfo } from '../../api/types';
-import { useTaskStore } from '../../stores/taskStore';
-import { ActionPicker } from './ActionPicker';
+import { useTestStore } from '../../stores/testStore';
+import { StepPicker } from './StepPicker';
 
 interface Props {
   step: Step;
@@ -91,17 +91,17 @@ const FIELD_RENDERERS: Record<string, FieldRenderer> = {
 
 export function StepForm({ step, index, onChange, onDelete }: Props) {
   const { t } = useTranslation();
-  const { actions } = useTaskStore();
+  const { stepTypes } = useTestStore();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const update = (field: string, value: unknown) => {
     onChange(index, { ...step, [field]: value });
   };
 
-  const actionDef = actions.find(a => a.name === step.action);
-  const fields = actionDef?.fields ?? [];
+  const stepDef = stepTypes.find(a => a.name === step.action);
+  const fields = stepDef?.fields ?? [];
 
-  // Check if this action has a "verify"-style expected checkbox
+  // Check if this step has a "verify"-style expected checkbox
   const isVerify = step.action === 'verify';
 
   const hasNonDefaultAdvanced =
@@ -113,15 +113,15 @@ export function StepForm({ step, index, onChange, onDelete }: Props) {
     <div className="step-form">
       <div className="step-form-header">
         <span className="step-number">#{index + 1}</span>
-        <ActionPicker value={step.action} onChange={v => update('action', v)} />
-        <Link to={`/help#action-${step.action}`} className="help-btn" title={t('stepForm.helpTooltip')}>?</Link>
+        <StepPicker value={step.action} onChange={v => update('action', v)} />
+        <Link to={`/help#step-${step.action}`} className="help-btn" title={t('stepForm.helpTooltip')}>?</Link>
         <input
           className="input flex-1"
           placeholder={t('stepForm.descriptionPlaceholder')}
           value={step.description}
           onChange={e => update('description', e.target.value)}
         />
-        <button className="btn btn-danger btn-sm" onClick={() => onDelete(index)}>{t('common.delete')}</button>
+        <button className="btn btn-danger btn-sm" onClick={() => onDelete(index)}>{t('common.remove')}</button>
       </div>
 
       <div className="step-form-fields">

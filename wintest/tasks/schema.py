@@ -21,7 +21,7 @@ class Step:
 
 
 @dataclass
-class TaskDefinition:
+class TestDefinition:
     name: str
     steps: list[Step]
     settings: dict = field(default_factory=dict)
@@ -39,8 +39,8 @@ class StepResult:
 
 
 @dataclass
-class TaskResult:
-    task_name: str
+class TestResult:
+    test_name: str
     step_results: list[StepResult]
 
     @property
@@ -52,3 +52,27 @@ class TaskResult:
         total = len(self.step_results)
         passed = sum(1 for r in self.step_results if r.passed)
         return {"total": total, "passed": passed, "failed": total - passed}
+
+
+@dataclass
+class TestSuiteDefinition:
+    name: str
+    test_paths: list[str]
+    description: str = ""
+    settings: dict = field(default_factory=dict)
+
+
+@dataclass
+class TestSuiteResult:
+    suite_name: str
+    test_results: list[TestResult]
+
+    @property
+    def passed(self) -> bool:
+        return all(r.passed for r in self.test_results)
+
+    @property
+    def summary(self) -> dict:
+        total = len(self.test_results)
+        passed = sum(1 for r in self.test_results if r.passed)
+        return {"total_tests": total, "passed": passed, "failed": total - passed}

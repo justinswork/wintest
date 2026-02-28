@@ -412,7 +412,7 @@ select.input {
   padding-left: 1.25rem;
 }
 
-/* ── Step form (Task Editor) ─────────────────────────────── */
+/* ── Step form (Test Editor) ─────────────────────────────── */
 .step-form {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -754,8 +754,8 @@ select.input {
   gap: 0.5rem;
 }
 
-/* ── Task editor ─────────────────────────────────────────── */
-.task-editor {
+/* ── Test editor ─────────────────────────────────────────── */
+.test-editor {
   max-width: 800px;
 }
 
@@ -947,19 +947,19 @@ select.input {
   border-bottom: 1px solid var(--border);
 }
 
-.action-doc-card {
+.step-doc-card {
   margin-bottom: 1rem;
   scroll-margin-top: 5rem;
 }
 
-.action-doc-card h3 {
+.step-doc-card h3 {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.4rem;
 }
 
-.action-doc-card h3 code {
+.step-doc-card h3 code {
   font-size: 1rem;
   background: var(--primary);
   color: #fff;
@@ -967,22 +967,22 @@ select.input {
   border-radius: var(--radius);
 }
 
-.action-doc-title {
+.step-doc-title {
   font-size: 0.95rem;
   color: var(--text-muted);
   font-weight: 400;
 }
 
-.action-doc-summary {
+.step-doc-summary {
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
 
-.action-doc-description {
+.step-doc-description {
   color: var(--text-muted);
 }
 
-.action-doc-card h4 {
+.step-doc-card h4 {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 0.75rem;
@@ -1051,7 +1051,7 @@ select.input {
   font-size: inherit;
 }
 
-/* ── Help button (StepForm) ────────────────────────────── */
+/* ── Help button (StepForm) ──────────────────────────────── */
 .help-btn {
   display: inline-flex;
   align-items: center;
@@ -1092,4 +1092,66 @@ select.input {
 
 [data-theme="light"] .card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Test Suite Editor / Viewer ───────────────────────────── */
+.test-suite-editor {
+  max-width: 800px;
+}
+
+.test-suite-test-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.test-suite-test-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.test-suite-test-index {
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.test-suite-test-path {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.test-suite-test-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.test-suite-add-test {
+  margin-top: 0.75rem;
+}
+
+.test-suite-add-test select {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.test-suite-viewer {
+  max-width: 800px;
+}
+
+.info-box {
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
 }

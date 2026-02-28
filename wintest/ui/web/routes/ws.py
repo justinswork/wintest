@@ -18,7 +18,7 @@ async def execution_ws(websocket: WebSocket):
         await websocket.send_json({
             "type": "run_status",
             "run_id": run.run_id,
-            "task_name": run.task_name,
+            "test_name": run.test_name,
             "status": run.status,
             "current_step": run.current_step,
             "total_steps": run.total_steps,

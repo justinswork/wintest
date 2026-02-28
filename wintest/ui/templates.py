@@ -1,7 +1,7 @@
 """Template content for the `wintest init` command."""
 
-TASK_TEMPLATE = """\
-# Task definition for wintest (Windows UI Testing)
+TEST_TEMPLATE = """\
+# Test definition for wintest (Windows UI Testing)
 # Run with: wintest run <this-file>
 
 name: "My Test"
@@ -25,7 +25,7 @@ steps:
     target: "text or element to verify"
     description: "Verify expected result"
 
-# Override global settings for this task
+# Override global settings for this test
 # settings:
 #   retry_attempts: 3
 #   retry_delay: 2

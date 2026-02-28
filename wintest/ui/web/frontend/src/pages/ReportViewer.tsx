@@ -36,7 +36,7 @@ export function ReportViewer() {
   return (
     <div className="report-viewer">
       <div className="section-header">
-        <h2>{report.task_name}</h2>
+        <h2>{report.test_name}</h2>
         <div className="header-actions">
           <StatusBadge passed={report.passed} />
           <button className="btn btn-danger btn-sm" onClick={handleDelete}>{t('common.delete')}</button>
@@ -47,32 +47,32 @@ export function ReportViewer() {
       </p>
 
       <div className="report-steps">
-        {report.steps.map((step, i) => {
+        {report.steps.map((step_item, i) => {
           const isExpanded = expandedStep === i;
-          const screenshotFile = step.screenshot_path
-            ? step.screenshot_path.split(/[/\\]/).pop()
+          const screenshotFile = step_item.screenshot_path
+            ? step_item.screenshot_path.split(/[/\\]/).pop()
             : null;
 
           return (
             <div
               key={i}
-              className={`step-card ${step.passed ? 'step-passed' : 'step-failed'}`}
+              className={`step-card ${step_item.passed ? 'step-passed' : 'step-failed'}`}
               onClick={() => setExpandedStep(isExpanded ? null : i)}
             >
               <div className="step-card-header">
                 <span className="step-num">#{i + 1}</span>
-                <span className="step-label">{step.description || step.action}</span>
-                <StatusBadge passed={step.passed} />
-                <span className="step-duration">{step.duration_seconds.toFixed(1)}s</span>
+                <span className="step-label">{step_item.description || step_item.action}</span>
+                <StatusBadge passed={step_item.passed} />
+                <span className="step-duration">{step_item.duration_seconds.toFixed(1)}s</span>
               </div>
 
               {isExpanded && (
                 <div className="step-detail">
-                  <p><strong>{t('reportViewer.action')}</strong> {step.action}</p>
-                  {step.target && <p><strong>{t('reportViewer.target')}</strong> {step.target}</p>}
-                  {step.error && <p className="step-error"><strong>{t('reportViewer.error')}</strong> {step.error}</p>}
-                  {step.coordinates && <p><strong>{t('reportViewer.coordinates')}</strong> [{step.coordinates.join(', ')}]</p>}
-                  {step.model_response && <p><strong>{t('reportViewer.modelResponse')}</strong> {step.model_response}</p>}
+                  <p><strong>{t('reportViewer.step')}</strong> {step_item.action}</p>
+                  {step_item.target && <p><strong>{t('reportViewer.target')}</strong> {step_item.target}</p>}
+                  {step_item.error && <p className="step-error"><strong>{t('reportViewer.error')}</strong> {step_item.error}</p>}
+                  {step_item.coordinates && <p><strong>{t('reportViewer.coordinates')}</strong> [{step_item.coordinates.join(', ')}]</p>}
+                  {step_item.model_response && <p><strong>{t('reportViewer.modelResponse')}</strong> {step_item.model_response}</p>}
                   {screenshotFile && reportId && (
                     <img
                       src={reportApi.screenshotUrl(reportId, screenshotFile)}

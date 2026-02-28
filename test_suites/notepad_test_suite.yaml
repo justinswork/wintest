@@ -1,0 +1,6 @@
+name: Notepad Test Suite
+description: Core notepad tests for basic application functionality
+tests:
+- path: notepad_test.yaml
+settings:
+  fail_fast: false

@@ -1,6 +1,6 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 
-export const scrollDoc: ActionDoc = {
+export const scrollDoc: StepDoc = {
   name: 'scroll',
   title: 'Scroll',
   summary: 'Scroll the mouse wheel.',
@@ -16,5 +16,5 @@ export const scrollDoc: ActionDoc = {
     },
   ],
   example:
-    '- action: scroll\n  scroll_amount: -3\n  description: "Scroll down three clicks"',
+    '- type: scroll\n  scroll_amount: -3\n  description: "Scroll down three clicks"',
 };

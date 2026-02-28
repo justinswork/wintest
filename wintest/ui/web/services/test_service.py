@@ -1,35 +1,35 @@
-"""Service for task file CRUD operations."""
+"""Service for test file CRUD operations."""
 
 import os
 from pathlib import Path
 
 import yaml
 
-from ....tasks.loader import load_task
-from ....tasks.validator import validate_task
+from ....tasks.loader import load_test
+from ....tasks.validator import validate_test
 from ....steps import registry
-from ..models import TaskModel, TaskListItem, StepModel, ValidationResult, ActionInfo, FieldInfo
+from ..models import TestModel, TestListItem, StepModel, ValidationResult, StepInfo, FieldInfo
 
-TASKS_DIR = "examples"
+TESTS_DIR = "tests"
 
 
-def list_tasks(settings=None) -> list[TaskListItem]:
-    """List all task YAML files in the tasks directory."""
-    tasks_dir = Path(TASKS_DIR)
-    if not tasks_dir.exists():
+def list_tests(settings=None) -> list[TestListItem]:
+    """List all test YAML files in the tests directory."""
+    tests_dir = Path(TESTS_DIR)
+    if not tests_dir.exists():
         return []
 
     items = []
-    for path in sorted(tasks_dir.glob("*.yaml")):
+    for path in sorted(tests_dir.glob("*.yaml")):
         try:
-            task = load_task(str(path), settings=settings)
-            items.append(TaskListItem(
+            test = load_test(str(path), settings=settings)
+            items.append(TestListItem(
                 filename=path.name,
-                name=task.name,
-                step_count=len(task.steps),
+                name=test.name,
+                step_count=len(test.steps),
             ))
         except (ValueError, Exception):
-            items.append(TaskListItem(
+            items.append(TestListItem(
                 filename=path.name,
                 name=f"(invalid: {path.name})",
                 step_count=0,
@@ -37,13 +37,13 @@ def list_tasks(settings=None) -> list[TaskListItem]:
     return items
 
 
-def get_task(filename: str, settings=None) -> TaskModel:
-    """Load a task file and return it as a TaskModel."""
+def get_test(filename: str, settings=None) -> TestModel:
+    """Load a test file and return it as a TestModel."""
     path = _resolve_path(filename)
-    task = load_task(str(path), settings=settings)
+    test = load_test(str(path), settings=settings)
 
     steps = []
-    for step in task.steps:
+    for step in test.steps:
         steps.append(StepModel(
             action=step.action,
             description=step.description,
@@ -61,28 +61,28 @@ def get_task(filename: str, settings=None) -> TaskModel:
             app_title=step.app_title,
         ))
 
-    return TaskModel(
-        name=task.name,
+    return TestModel(
+        name=test.name,
         filename=filename,
         steps=steps,
-        settings=task.settings,
+        settings=test.settings,
     )
 
 
-def save_task(task: TaskModel, filename: str | None = None) -> str:
-    """Save a TaskModel as a YAML file. Returns the filename."""
+def save_test(test: TestModel, filename: str | None = None) -> str:
+    """Save a TestModel as a YAML file. Returns the filename."""
     if filename is None:
-        filename = task.filename
+        filename = test.filename
     if filename is None:
-        safe_name = task.name.lower().replace(" ", "_")
+        safe_name = test.name.lower().replace(" ", "_")
         filename = f"{safe_name}.yaml"
 
     data = {
-        "name": task.name,
+        "name": test.name,
         "steps": [],
     }
 
-    for step in task.steps:
+    for step in test.steps:
         step_data = {"action": step.action}
         if step.description:
             step_data["description"] = step.description
@@ -112,12 +112,12 @@ def save_task(task: TaskModel, filename: str | None = None) -> str:
             step_data["app_title"] = step.app_title
         data["steps"].append(step_data)
 
-    if task.settings:
-        data["settings"] = task.settings
+    if test.settings:
+        data["settings"] = test.settings
 
-    tasks_dir = Path(TASKS_DIR)
-    tasks_dir.mkdir(exist_ok=True)
-    path = tasks_dir / filename
+    tests_dir = Path(TESTS_DIR)
+    tests_dir.mkdir(exist_ok=True)
+    path = tests_dir / filename
 
     # Atomic write
     tmp_path = path.with_suffix(".yaml.tmp")
@@ -128,45 +128,45 @@ def save_task(task: TaskModel, filename: str | None = None) -> str:
     return filename
 
 
-def delete_task(filename: str) -> None:
-    """Delete a task file."""
+def delete_test(filename: str) -> None:
+    """Delete a test file."""
     path = _resolve_path(filename)
     path.unlink()
 
 
-def validate_task_file(filename: str, settings=None) -> ValidationResult:
-    """Validate a task file structurally and semantically."""
+def validate_test_file(filename: str, settings=None) -> ValidationResult:
+    """Validate a test file structurally and semantically."""
     path = _resolve_path(filename)
     try:
-        task = load_task(str(path), settings=settings)
+        test = load_test(str(path), settings=settings)
     except ValueError as e:
         return ValidationResult(valid=False, issues=[str(e)])
 
-    issues = validate_task(task)
+    issues = validate_test(test)
     return ValidationResult(valid=len(issues) == 0, issues=issues)
 
 
-def get_action_types() -> list[ActionInfo]:
-    """Return all available action types with descriptions from the step registry."""
-    actions = []
+def get_step_types() -> list[StepInfo]:
+    """Return all available step types with descriptions from the action registry."""
+    step_types = []
     for defn in registry.all_definitions():
         required = [f.name for f in defn.fields if f.required]
         fields = [
             FieldInfo(name=f.name, field_type=f.field_type, required=f.required)
             for f in defn.fields
         ]
-        actions.append(ActionInfo(
+        step_types.append(StepInfo(
             name=defn.name,
             description=defn.description,
             required_fields=required,
             fields=fields,
         ))
-    return actions
+    return step_types
 
 
 def _resolve_path(filename: str) -> Path:
-    """Resolve a filename to a path in the tasks directory."""
-    path = Path(TASKS_DIR) / filename
+    """Resolve a filename to a path in the tests directory."""
+    path = Path(TESTS_DIR) / filename
     if not path.exists():
-        raise FileNotFoundError(f"Task file not found: {filename}")
+        raise FileNotFoundError(f"Test file not found: {filename}")
     return path

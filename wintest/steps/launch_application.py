@@ -17,7 +17,7 @@ def validate(step, step_num):
 
 
 def execute(step, runner_ctx):
-    """Execute in runner context — runner_ctx has settings, agent, and state."""
+    """Execute in runner context -- runner_ctx has settings, agent, and state."""
     effective = runner_ctx["effective_settings"]
     app_config = AppConfig(
         path=step.app_path,

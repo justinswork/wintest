@@ -1,6 +1,6 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 
-export const doubleClickDoc: ActionDoc = {
+export const doubleClickDoc: StepDoc = {
   name: 'double_click',
   title: 'Double Click',
   summary: 'Double-click on a UI element.',
@@ -16,5 +16,5 @@ export const doubleClickDoc: ActionDoc = {
     },
   ],
   example:
-    '- action: double_click\n  target: "the file icon named Report.docx"\n  description: "Open the report file"',
+    '- type: double_click\n  target: "the file icon named Report.docx"\n  description: "Open the report file"',
 };

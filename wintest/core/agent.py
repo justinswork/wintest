@@ -75,7 +75,7 @@ class Agent:
         defn = registry.get(step.action)
         if defn is None:
             return StepResult(
-                step=step, passed=False, error=f"Unknown action: {step.action}"
+                step=step, passed=False, error=f"Unknown step type: {step.action}"
             )
         return defn.execute(step, self)
 

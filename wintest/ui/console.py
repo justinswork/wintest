@@ -45,17 +45,33 @@ def step_fail(
         click.echo(click.style(f"         {err_msg}", fg="red"))
 
 
-def task_result_banner(task_name: str, passed: bool, summary: dict) -> None:
-    """Print the final task result banner."""
+def test_result_banner(test_name: str, passed: bool, summary: dict) -> None:
+    """Print the final test result banner."""
     if passed:
         status = click.style("PASSED", fg="green", bold=True)
     else:
         status = click.style("FAILED", fg="red", bold=True)
     click.echo("")
     click.echo("=" * 50)
-    click.echo(f"  {task_name}: {status}")
+    click.echo(f"  {test_name}: {status}")
     click.echo(
         f"  {summary['passed']}/{summary['total']} steps passed, "
+        f"{summary['failed']} failed"
+    )
+    click.echo("=" * 50)
+
+
+def test_suite_result_banner(suite_name: str, passed: bool, summary: dict) -> None:
+    """Print the final test suite result banner."""
+    if passed:
+        status = click.style("PASSED", fg="green", bold=True)
+    else:
+        status = click.style("FAILED", fg="red", bold=True)
+    click.echo("")
+    click.echo("=" * 50)
+    click.echo(f"  Suite: {suite_name}: {status}")
+    click.echo(
+        f"  {summary['passed']}/{summary['total_tests']} tests passed, "
         f"{summary['failed']} failed"
     )
     click.echo("=" * 50)

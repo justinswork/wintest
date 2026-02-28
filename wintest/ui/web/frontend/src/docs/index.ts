@@ -1,4 +1,4 @@
-import type { ActionDoc } from './types';
+import type { StepDoc } from './types';
 import { clickDoc } from './click';
 import { doubleClickDoc } from './double_click';
 import { rightClickDoc } from './right_click';
@@ -10,9 +10,9 @@ import { waitDoc } from './wait';
 import { verifyDoc } from './verify';
 import { launchApplicationDoc } from './launch_application';
 
-export type { ActionDoc, ActionParam } from './types';
+export type { StepDoc, StepParam } from './types';
 
-const allDocs: ActionDoc[] = [
+const allDocs: StepDoc[] = [
   launchApplicationDoc,
   clickDoc,
   doubleClickDoc,
@@ -25,8 +25,8 @@ const allDocs: ActionDoc[] = [
   verifyDoc,
 ];
 
-export const actionDocs: Record<string, ActionDoc> = Object.fromEntries(
+export const stepDocs: Record<string, StepDoc> = Object.fromEntries(
   allDocs.map(doc => [doc.name, doc]),
 );
 
-export const actionDocList: ActionDoc[] = allDocs;
+export const stepDocList: StepDoc[] = allDocs;
