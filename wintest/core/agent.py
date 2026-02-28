@@ -5,7 +5,8 @@ import time
 
 from PIL import ImageDraw
 
-from ..tasks.schema import Step, StepResult, ActionType
+from ..tasks.schema import Step, StepResult
+from ..steps import registry
 from .vision import VisionModel
 from .screen import ScreenCapture
 from .actions import ActionExecutor
@@ -70,40 +71,15 @@ class Agent:
         return result
 
     def _dispatch(self, step: Step) -> StepResult:
-        """Route a step to the appropriate handler."""
-        if step.action == ActionType.WAIT:
-            self.actions.wait(step.wait_seconds)
-            return StepResult(step=step, passed=True)
+        """Route a step to the appropriate handler via the step registry."""
+        defn = registry.get(step.action)
+        if defn is None:
+            return StepResult(
+                step=step, passed=False, error=f"Unknown action: {step.action}"
+            )
+        return defn.execute(step, self)
 
-        if step.action == ActionType.TYPE:
-            self.actions.type_text(step.text)
-            return StepResult(step=step, passed=True)
-
-        if step.action == ActionType.PRESS_KEY:
-            self.actions.press_key(step.key)
-            return StepResult(step=step, passed=True)
-
-        if step.action == ActionType.HOTKEY:
-            self.actions.hotkey(*step.keys)
-            return StepResult(step=step, passed=True)
-
-        if step.action == ActionType.SCROLL:
-            self.actions.scroll(step.scroll_amount)
-            return StepResult(step=step, passed=True)
-
-        if step.action == ActionType.VERIFY:
-            return self._execute_verify(step)
-
-        if step.action in (
-            ActionType.CLICK, ActionType.DOUBLE_CLICK, ActionType.RIGHT_CLICK
-        ):
-            return self._execute_click(step)
-
-        return StepResult(
-            step=step, passed=False, error=f"Unknown action: {step.action}"
-        )
-
-    def _execute_click(self, step: Step) -> StepResult:
+    def find_and_click(self, step: Step, click_type: str = "click") -> StepResult:
         """Find an element on screen and click it, with retries."""
         for attempt in range(step.retry_attempts):
             screenshot = self.screen.capture()
@@ -118,11 +94,11 @@ class Agent:
                     screenshot, click_coords=(px, py)
                 )
 
-                if step.action == ActionType.CLICK:
+                if click_type == "click":
                     self.actions.click(px, py)
-                elif step.action == ActionType.DOUBLE_CLICK:
+                elif click_type == "double_click":
                     self.actions.click(px, py, clicks=2)
-                elif step.action == ActionType.RIGHT_CLICK:
+                elif click_type == "right_click":
                     self.actions.click(px, py, button="right")
 
                 return StepResult(
@@ -152,7 +128,7 @@ class Agent:
             screenshot_path=screenshot_path,
         )
 
-    def _execute_verify(self, step: Step) -> StepResult:
+    def find_and_verify(self, step: Step) -> StepResult:
         """
         Verify whether an element is visible on screen.
 

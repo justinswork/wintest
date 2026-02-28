@@ -7,8 +7,8 @@ import yaml
 
 from ....tasks.loader import load_task
 from ....tasks.validator import validate_task
-from ....tasks.schema import ActionType
-from ..models import TaskModel, TaskListItem, StepModel, ValidationResult, ActionInfo
+from ....steps import registry
+from ..models import TaskModel, TaskListItem, StepModel, ValidationResult, ActionInfo, FieldInfo
 
 TASKS_DIR = "examples"
 
@@ -45,7 +45,7 @@ def get_task(filename: str, settings=None) -> TaskModel:
     steps = []
     for step in task.steps:
         steps.append(StepModel(
-            action=step.action.value,
+            action=step.action,
             description=step.description,
             target=step.target,
             text=step.text,
@@ -147,15 +147,19 @@ def validate_task_file(filename: str, settings=None) -> ValidationResult:
 
 
 def get_action_types() -> list[ActionInfo]:
-    """Return all available action types with descriptions."""
-    from ...cli import ACTION_DESCRIPTIONS, ACTION_REQUIRED_FIELDS
-
+    """Return all available action types with descriptions from the step registry."""
     actions = []
-    for action in ActionType:
+    for defn in registry.all_definitions():
+        required = [f.name for f in defn.fields if f.required]
+        fields = [
+            FieldInfo(name=f.name, field_type=f.field_type, required=f.required)
+            for f in defn.fields
+        ]
         actions.append(ActionInfo(
-            name=action.value,
-            description=ACTION_DESCRIPTIONS.get(action, ""),
-            required_fields=ACTION_REQUIRED_FIELDS.get(action, []),
+            name=defn.name,
+            description=defn.description,
+            required_fields=required,
+            fields=fields,
         ))
     return actions
 

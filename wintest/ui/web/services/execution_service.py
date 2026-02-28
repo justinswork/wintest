@@ -45,8 +45,8 @@ class WebSocketProgressCallback:
 
         step_data = {
             "step_num": step_num,
-            "description": result.step.description or result.step.action.value,
-            "action": result.step.action.value,
+            "description": result.step.description or result.step.action,
+            "action": result.step.action,
             "passed": result.passed,
             "duration_seconds": round(result.duration_seconds, 2),
             "error": result.error,

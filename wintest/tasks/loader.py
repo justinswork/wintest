@@ -1,5 +1,6 @@
 import yaml
-from .schema import TaskDefinition, Step, ActionType
+from .schema import TaskDefinition, Step
+from ..steps import registry
 
 
 def load_task(filepath: str, settings=None) -> TaskDefinition:
@@ -33,13 +34,11 @@ def load_task(filepath: str, settings=None) -> TaskDefinition:
         if "action" not in step_data:
             raise ValueError(f"Step {i + 1} missing required 'action' field")
 
-        try:
-            action = ActionType(step_data["action"])
-        except ValueError:
-            valid = [a.value for a in ActionType]
+        action = step_data["action"]
+        if registry.get(action) is None:
             raise ValueError(
-                f"Step {i + 1}: unknown action '{step_data['action']}'. "
-                f"Valid actions: {valid}"
+                f"Step {i + 1}: unknown action '{action}'. "
+                f"Valid actions: {registry.action_names()}"
             )
 
         steps.append(Step(

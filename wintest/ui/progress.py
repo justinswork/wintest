@@ -16,7 +16,7 @@ class ProgressDisplay:
 
     def on_step_complete(self, step_num: int, result: StepResult) -> None:
         """Called after a step finishes. Prints colored PASS/FAIL."""
-        label = result.step.description or result.step.action.value
+        label = result.step.description or result.step.action
         if result.passed:
             console.step_pass(
                 step_num, self.total_steps, label, result.duration_seconds

@@ -1,24 +1,10 @@
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Optional
-
-
-class ActionType(Enum):
-    CLICK = "click"
-    DOUBLE_CLICK = "double_click"
-    RIGHT_CLICK = "right_click"
-    TYPE = "type"
-    PRESS_KEY = "press_key"
-    HOTKEY = "hotkey"
-    SCROLL = "scroll"
-    WAIT = "wait"
-    VERIFY = "verify"
-    LAUNCH_APPLICATION = "launch_application"
 
 
 @dataclass
 class Step:
-    action: ActionType
+    action: str
     description: str = ""
     target: Optional[str] = None
     text: Optional[str] = None

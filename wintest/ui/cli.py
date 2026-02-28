@@ -11,7 +11,7 @@ import click
 
 from ..config.logging import setup_logging
 from ..config.settings import Settings
-from ..tasks.schema import ActionType
+from ..steps import registry
 from . import console
 
 
@@ -154,47 +154,19 @@ def init(output, force):
 
 # -- wintest list-actions --------------------------------------------
 
-ACTION_DESCRIPTIONS = {
-    ActionType.CLICK:        "Click on a UI element identified by the AI model",
-    ActionType.DOUBLE_CLICK: "Double-click on a UI element",
-    ActionType.RIGHT_CLICK:  "Right-click on a UI element",
-    ActionType.TYPE:         "Type text at the current cursor position",
-    ActionType.PRESS_KEY:    "Press a single keyboard key (enter, tab, escape, ...)",
-    ActionType.HOTKEY:       "Press a key combination (ctrl+c, alt+f4, ...)",
-    ActionType.SCROLL:       "Scroll the mouse wheel (positive=up, negative=down)",
-    ActionType.WAIT:         "Pause execution for a specified duration",
-    ActionType.VERIFY:       "Verify that a UI element is visible (or not visible)",
-    ActionType.LAUNCH_APPLICATION: "Launch an application and manage its window",
-}
-
-ACTION_REQUIRED_FIELDS = {
-    ActionType.CLICK:        ["target"],
-    ActionType.DOUBLE_CLICK: ["target"],
-    ActionType.RIGHT_CLICK:  ["target"],
-    ActionType.TYPE:         ["text"],
-    ActionType.PRESS_KEY:    ["key"],
-    ActionType.HOTKEY:       ["keys"],
-    ActionType.SCROLL:       ["scroll_amount"],
-    ActionType.WAIT:         ["wait_seconds"],
-    ActionType.VERIFY:       ["target"],
-    ActionType.LAUNCH_APPLICATION: ["app_path"],
-}
-
-
 @cli.command("list-actions")
 def list_actions():
     """Show all available action types with descriptions."""
     console.header("\n  Available Actions\n")
 
-    for action in ActionType:
-        name = click.style(action.value, bold=True)
-        desc = ACTION_DESCRIPTIONS.get(action, "")
-        click.echo(f"  {name:24s} {desc}")
+    for defn in registry.all_definitions():
+        name = click.style(defn.name, bold=True)
+        click.echo(f"  {name:24s} {defn.description}")
 
-        fields = ACTION_REQUIRED_FIELDS.get(action, [])
-        if fields:
+        required = [f.name for f in defn.fields if f.required]
+        if required:
             click.echo(click.style(
-                f"  {'':24s} Required: {', '.join(fields)}",
+                f"  {'':24s} Required: {', '.join(required)}",
                 fg="bright_black",
             ))
 

@@ -9,20 +9,20 @@ from ..core.vision import VisionModel
 from ..core.screen import ScreenCapture
 from ..core.actions import ActionExecutor
 from ..core.agent import Agent
-from ..tasks.schema import Step, ActionType
+from ..tasks.schema import Step
 from . import console
 
 # Command patterns: "click <target>", "type <text>", etc.
 COMMAND_PATTERNS = [
-    (r"^click\s+(.+)$", ActionType.CLICK),
-    (r"^double[- ]?click\s+(.+)$", ActionType.DOUBLE_CLICK),
-    (r"^right[- ]?click\s+(.+)$", ActionType.RIGHT_CLICK),
-    (r"^type\s+(.+)$", ActionType.TYPE),
-    (r"^press\s+(.+)$", ActionType.PRESS_KEY),
-    (r"^hotkey\s+(.+)$", ActionType.HOTKEY),
-    (r"^scroll\s+(up|down)(?:\s+(\d+))?$", ActionType.SCROLL),
-    (r"^wait\s+([\d.]+)$", ActionType.WAIT),
-    (r"^verify\s+(.+)$", ActionType.VERIFY),
+    (r"^click\s+(.+)$", "click"),
+    (r"^double[- ]?click\s+(.+)$", "double_click"),
+    (r"^right[- ]?click\s+(.+)$", "right_click"),
+    (r"^type\s+(.+)$", "type"),
+    (r"^press\s+(.+)$", "press_key"),
+    (r"^hotkey\s+(.+)$", "hotkey"),
+    (r"^scroll\s+(up|down)(?:\s+(\d+))?$", "scroll"),
+    (r"^wait\s+([\d.]+)$", "wait"),
+    (r"^verify\s+(.+)$", "verify"),
 ]
 
 
@@ -46,40 +46,37 @@ def parse_command(text: str) -> Step | None:
     if not text:
         return None
 
-    for pattern, action_type in COMMAND_PATTERNS:
+    for pattern, action in COMMAND_PATTERNS:
         match = re.match(pattern, text, re.IGNORECASE)
         if not match:
             continue
 
-        if action_type in (
-            ActionType.CLICK, ActionType.DOUBLE_CLICK,
-            ActionType.RIGHT_CLICK, ActionType.VERIFY,
-        ):
-            return Step(action=action_type, target=match.group(1).strip())
+        if action in ("click", "double_click", "right_click", "verify"):
+            return Step(action=action, target=match.group(1).strip())
 
-        if action_type == ActionType.TYPE:
-            return Step(action=action_type, text=match.group(1))
+        if action == "type":
+            return Step(action=action, text=match.group(1))
 
-        if action_type == ActionType.PRESS_KEY:
-            return Step(action=action_type, key=match.group(1).strip().lower())
+        if action == "press_key":
+            return Step(action=action, key=match.group(1).strip().lower())
 
-        if action_type == ActionType.HOTKEY:
+        if action == "hotkey":
             keys = [
                 k.strip().lower()
                 for k in match.group(1).replace("+", " ").split()
             ]
-            return Step(action=action_type, keys=keys)
+            return Step(action=action, keys=keys)
 
-        if action_type == ActionType.SCROLL:
+        if action == "scroll":
             direction = match.group(1).lower()
             amount = int(match.group(2)) if match.group(2) else 3
             return Step(
-                action=action_type,
+                action=action,
                 scroll_amount=amount if direction == "up" else -amount,
             )
 
-        if action_type == ActionType.WAIT:
-            return Step(action=action_type, wait_seconds=float(match.group(1)))
+        if action == "wait":
+            return Step(action=action, wait_seconds=float(match.group(1)))
 
     return None
 
@@ -121,7 +118,7 @@ def run_interactive(settings: Settings) -> None:
             console.info("Type 'help' for supported commands.")
             continue
 
-        console.info(f"  Executing: {step.action.value}...")
+        console.info(f"  Executing: {step.action}...")
         result = agent.execute_step(step, step_timeout=settings.timeout.step_timeout)
 
         if result.passed:

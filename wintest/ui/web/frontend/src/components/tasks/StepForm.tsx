@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Step } from '../../api/types';
+import type { Step, FieldInfo } from '../../api/types';
+import { useTaskStore } from '../../stores/taskStore';
 import { ActionPicker } from './ActionPicker';
 
 interface Props {
@@ -11,22 +12,97 @@ interface Props {
   onDelete: (index: number) => void;
 }
 
-const NEEDS_TARGET = ['click', 'double_click', 'right_click', 'verify'];
-const NEEDS_TEXT = ['type'];
-const NEEDS_KEY = ['press_key'];
-const NEEDS_KEYS = ['hotkey'];
-const NEEDS_SCROLL = ['scroll'];
-const NEEDS_WAIT = ['wait', 'launch_application'];
-const NEEDS_APP_PATH = ['launch_application'];
-const NEEDS_EXPECTED = ['verify'];
+type FieldRenderer = (
+  step: Step,
+  field: FieldInfo,
+  update: (name: string, value: unknown) => void,
+  t: (key: string) => string,
+) => JSX.Element | null;
+
+const FIELD_RENDERERS: Record<string, FieldRenderer> = {
+  target: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.targetPlaceholder')}
+      value={step.target ?? ''}
+      onChange={e => update('target', e.target.value || null)}
+    />
+  ),
+  text: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.textPlaceholder')}
+      value={step.text ?? ''}
+      onChange={e => update('text', e.target.value || null)}
+    />
+  ),
+  key: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.keyPlaceholder')}
+      value={step.key ?? ''}
+      onChange={e => update('key', e.target.value || null)}
+    />
+  ),
+  keys: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.keysPlaceholder')}
+      value={step.keys?.join(', ') ?? ''}
+      onChange={e => update('keys', e.target.value.split(',').map(k => k.trim()).filter(Boolean))}
+    />
+  ),
+  scroll_amount: (step, _field, update, t) => (
+    <input
+      className="input"
+      type="number"
+      placeholder={t('stepForm.scrollPlaceholder')}
+      value={step.scroll_amount}
+      onChange={e => update('scroll_amount', parseInt(e.target.value) || 0)}
+    />
+  ),
+  wait_seconds: (step, _field, update, t) => (
+    <input
+      className="input"
+      type="number"
+      step="0.5"
+      placeholder={t('stepForm.waitPlaceholder')}
+      value={step.wait_seconds}
+      onChange={e => update('wait_seconds', parseFloat(e.target.value) || 0)}
+    />
+  ),
+  app_path: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.appPathPlaceholder')}
+      value={step.app_path ?? ''}
+      onChange={e => update('app_path', e.target.value || null)}
+    />
+  ),
+  app_title: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.appTitlePlaceholder')}
+      value={step.app_title ?? ''}
+      onChange={e => update('app_title', e.target.value || null)}
+    />
+  ),
+};
 
 export function StepForm({ step, index, onChange, onDelete }: Props) {
   const { t } = useTranslation();
+  const { actions } = useTaskStore();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const update = (field: string, value: unknown) => {
     onChange(index, { ...step, [field]: value });
   };
+
+  const actionDef = actions.find(a => a.name === step.action);
+  const fields = actionDef?.fields ?? [];
+
+  // Check if this action has a "verify"-style expected checkbox
+  const isVerify = step.action === 'verify';
 
   const hasNonDefaultAdvanced =
     step.retry_attempts !== 3 ||
@@ -49,74 +125,12 @@ export function StepForm({ step, index, onChange, onDelete }: Props) {
       </div>
 
       <div className="step-form-fields">
-        {NEEDS_APP_PATH.includes(step.action) && (
-          <>
-            <input
-              className="input"
-              placeholder={t('stepForm.appPathPlaceholder')}
-              value={step.app_path ?? ''}
-              onChange={e => update('app_path', e.target.value || null)}
-            />
-            <input
-              className="input"
-              placeholder={t('stepForm.appTitlePlaceholder')}
-              value={step.app_title ?? ''}
-              onChange={e => update('app_title', e.target.value || null)}
-            />
-          </>
-        )}
-        {NEEDS_TARGET.includes(step.action) && (
-          <input
-            className="input"
-            placeholder={t('stepForm.targetPlaceholder')}
-            value={step.target ?? ''}
-            onChange={e => update('target', e.target.value || null)}
-          />
-        )}
-        {NEEDS_TEXT.includes(step.action) && (
-          <input
-            className="input"
-            placeholder={t('stepForm.textPlaceholder')}
-            value={step.text ?? ''}
-            onChange={e => update('text', e.target.value || null)}
-          />
-        )}
-        {NEEDS_KEY.includes(step.action) && (
-          <input
-            className="input"
-            placeholder={t('stepForm.keyPlaceholder')}
-            value={step.key ?? ''}
-            onChange={e => update('key', e.target.value || null)}
-          />
-        )}
-        {NEEDS_KEYS.includes(step.action) && (
-          <input
-            className="input"
-            placeholder={t('stepForm.keysPlaceholder')}
-            value={step.keys?.join(', ') ?? ''}
-            onChange={e => update('keys', e.target.value.split(',').map(k => k.trim()).filter(Boolean))}
-          />
-        )}
-        {NEEDS_SCROLL.includes(step.action) && (
-          <input
-            className="input"
-            type="number"
-            placeholder={t('stepForm.scrollPlaceholder')}
-            value={step.scroll_amount}
-            onChange={e => update('scroll_amount', parseInt(e.target.value) || 0)}
-          />
-        )}
-        {NEEDS_WAIT.includes(step.action) && (
-          <input
-            className="input"
-            type="number"
-            step="0.5"
-            placeholder={t('stepForm.waitPlaceholder')}
-            value={step.wait_seconds}
-            onChange={e => update('wait_seconds', parseFloat(e.target.value) || 0)}
-          />
-        )}
-        {NEEDS_EXPECTED.includes(step.action) && (
+        {fields.map(field => {
+          const renderer = FIELD_RENDERERS[field.name];
+          if (!renderer) return null;
+          return <div key={field.name}>{renderer(step, field, update, t)}</div>;
+        })}
+        {isVerify && (
           <label className="step-checkbox">
             <input
               type="checkbox"

@@ -28,10 +28,17 @@ export interface TaskListItem {
   step_count: number;
 }
 
+export interface FieldInfo {
+  name: string;
+  field_type: string;
+  required: boolean;
+}
+
 export interface ActionInfo {
   name: string;
   description: string;
   required_fields: string[];
+  fields: FieldInfo[];
 }
 
 export interface ValidationResult {

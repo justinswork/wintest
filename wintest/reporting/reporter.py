@@ -32,7 +32,7 @@ class ReportGenerator:
         for r in result.step_results:
             step_data = {
                 "description": r.step.description,
-                "action": r.step.action.value,
+                "action": r.step.action,
                 "target": r.step.target,
                 "passed": r.passed,
                 "duration_seconds": round(r.duration_seconds, 2),
@@ -66,8 +66,8 @@ class ReportGenerator:
 
             steps.append({
                 "number": i,
-                "description": r.step.description or r.step.action.value,
-                "action": r.step.action.value,
+                "description": r.step.description or r.step.action,
+                "action": r.step.action,
                 "target": r.step.target,
                 "passed": r.passed,
                 "duration": round(r.duration_seconds, 1),

@@ -1,6 +1,7 @@
 """Semantic validation for task YAML files beyond basic schema checks."""
 
-from .schema import ActionType, TaskDefinition
+from .schema import TaskDefinition
+from ..steps import registry
 
 
 def validate_task(task: TaskDefinition) -> list[str]:
@@ -14,40 +15,10 @@ def validate_task(task: TaskDefinition) -> list[str]:
     issues = []
 
     for i, step in enumerate(task.steps, 1):
-        if step.action in (
-            ActionType.CLICK, ActionType.DOUBLE_CLICK,
-            ActionType.RIGHT_CLICK, ActionType.VERIFY,
-        ):
-            if not step.target:
-                issues.append(
-                    f"Step {i}: '{step.action.value}' requires a 'target' field"
-                )
-
-        if step.action == ActionType.TYPE and not step.text:
-            issues.append(f"Step {i}: 'type' requires a 'text' field")
-
-        if step.action == ActionType.PRESS_KEY and not step.key:
-            issues.append(f"Step {i}: 'press_key' requires a 'key' field")
-
-        if step.action == ActionType.HOTKEY:
-            if not step.keys or len(step.keys) < 2:
-                issues.append(
-                    f"Step {i}: 'hotkey' requires a 'keys' list with at least 2 keys"
-                )
-
-        if step.action == ActionType.WAIT and step.wait_seconds <= 0:
-            issues.append(
-                f"Step {i}: 'wait' requires a positive 'wait_seconds' value"
-            )
-
-        if step.action == ActionType.SCROLL and step.scroll_amount == 0:
-            issues.append(
-                f"Step {i}: 'scroll' requires a non-zero 'scroll_amount' value"
-            )
-
-        if step.action == ActionType.LAUNCH_APPLICATION and not step.app_path:
-            issues.append(
-                f"Step {i}: 'launch_application' requires an 'app_path' field"
-            )
+        defn = registry.get(step.action)
+        if defn is None:
+            issues.append(f"Step {i}: unknown action '{step.action}'")
+            continue
+        issues.extend(defn.validate(step, i))
 
     return issues

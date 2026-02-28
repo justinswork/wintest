@@ -83,7 +83,14 @@ class ValidationResult(BaseModel):
     issues: list[str]
 
 
+class FieldInfo(BaseModel):
+    name: str
+    field_type: str
+    required: bool = False
+
+
 class ActionInfo(BaseModel):
     name: str
     description: str
     required_fields: list[str]
+    fields: list[FieldInfo] = []

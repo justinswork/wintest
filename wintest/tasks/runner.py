@@ -5,10 +5,9 @@ import time
 from datetime import datetime
 from typing import Optional
 
-from .schema import TaskDefinition, TaskResult, StepResult, ActionType
+from .schema import TaskDefinition, TaskResult, StepResult
+from ..steps import registry
 from ..core.agent import Agent
-from ..core.app_manager import ApplicationManager, AppConfig
-from ..core.recovery import RecoveryStrategy
 from ..config.settings import Settings
 from ..reporting.reporter import ReportGenerator
 
@@ -58,38 +57,28 @@ class TaskRunner:
             if self._app_manager:
                 self._app_manager.focus()
 
-            label = step.description or step.action.value
+            label = step.description or step.action
             logger.info("[Step %d/%d] %s...", i, len(task.steps), label)
 
             if progress_callback:
                 progress_callback.on_step_start(i, label)
 
-            # Handle launch_application steps directly in the runner
-            if step.action == ActionType.LAUNCH_APPLICATION:
+            defn = registry.get(step.action)
+
+            # Handle runner-level steps (e.g. launch_application)
+            if defn and defn.is_runner_step:
                 start = time.time()
                 try:
-                    app_config = AppConfig(
-                        path=step.app_path,
-                        title=step.app_title,
-                        wait_after_launch=step.wait_seconds or effective.app.wait_after_launch,
-                    )
-                    self._app_manager = ApplicationManager(
-                        config=app_config,
-                        graceful_close_timeout=effective.app.graceful_close_timeout,
-                        focus_delay=effective.app.focus_delay,
-                    )
-                    self._app_manager.launch()
-
-                    if effective.recovery.enabled:
-                        self._recovery = RecoveryStrategy(
-                            app_manager=self._app_manager,
-                            actions=self.agent.actions,
-                            max_attempts=effective.recovery.max_recovery_attempts,
-                            dismiss_keys=effective.recovery.dismiss_dialog_keys,
-                            recovery_delay=effective.recovery.recovery_delay,
-                        )
-
-                    result = StepResult(step=step, passed=True)
+                    runner_ctx = {
+                        "effective_settings": effective,
+                        "agent": self.agent,
+                        "app_manager": self._app_manager,
+                        "recovery": self._recovery,
+                    }
+                    result = defn.execute(step, runner_ctx)
+                    # Pick up any state changes from the step
+                    self._app_manager = runner_ctx.get("app_manager")
+                    self._recovery = runner_ctx.get("recovery")
                 except Exception as e:
                     result = StepResult(step=step, passed=False, error=str(e))
                 result.duration_seconds = time.time() - start
