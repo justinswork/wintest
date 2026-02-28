@@ -45,6 +45,7 @@ class StepResult:
     error: Optional[str] = None
     coordinates: Optional[tuple[int, int]] = None
     model_response: Optional[str] = None
+    screenshot_path: Optional[str] = None
     duration_seconds: float = 0.0
 
 

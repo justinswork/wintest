@@ -1,4 +1,7 @@
+import os
 import time
+
+from PIL import ImageDraw
 
 from ..tasks.schema import Step, StepResult, ActionType
 from .vision import VisionModel
@@ -19,13 +22,17 @@ class Agent:
         vision: VisionModel,
         screen: ScreenCapture,
         actions: ActionExecutor,
+        report_dir: str = None,
     ):
         self.vision = vision
         self.screen = screen
         self.actions = actions
+        self.report_dir = report_dir
+        self._step_counter = 0
 
     def execute_step(self, step: Step) -> StepResult:
         """Execute a single test step and return the result."""
+        self._step_counter += 1
         start = time.time()
         try:
             result = self._dispatch(step)
@@ -78,6 +85,11 @@ class Agent:
             if coords is not None:
                 px, py = self.screen.normalized_to_pixel(*coords)
 
+                # Save annotated screenshot with crosshair at click location
+                screenshot_path = self._save_screenshot(
+                    screenshot, click_coords=(px, py)
+                )
+
                 if step.action == ActionType.CLICK:
                     self.actions.click(px, py)
                 elif step.action == ActionType.DOUBLE_CLICK:
@@ -90,6 +102,7 @@ class Agent:
                     passed=True,
                     coordinates=(px, py),
                     model_response=result["raw_response"],
+                    screenshot_path=screenshot_path,
                 )
 
             if attempt < step.retry_attempts - 1:
@@ -99,11 +112,15 @@ class Agent:
                 )
                 time.sleep(step.retry_delay)
 
+        # Save the last screenshot even on failure
+        screenshot_path = self._save_screenshot(screenshot)
+
         return StepResult(
             step=step,
             passed=False,
             error=f"Element '{step.target}' not found after {step.retry_attempts} attempts",
             model_response=result["raw_response"],
+            screenshot_path=screenshot_path,
         )
 
     def _execute_verify(self, step: Step) -> StepResult:
@@ -119,10 +136,12 @@ class Agent:
             is_visible = result["coordinates"] is not None
 
             if is_visible == step.expected:
+                screenshot_path = self._save_screenshot(screenshot)
                 return StepResult(
                     step=step,
                     passed=True,
                     model_response=result["raw_response"],
+                    screenshot_path=screenshot_path,
                 )
 
             if attempt < step.retry_attempts - 1:
@@ -132,10 +151,42 @@ class Agent:
                 )
                 time.sleep(step.retry_delay)
 
+        screenshot_path = self._save_screenshot(screenshot)
         expected_str = "visible" if step.expected else "not visible"
         return StepResult(
             step=step,
             passed=False,
             error=f"Expected '{step.target}' to be {expected_str}",
             model_response=result["raw_response"],
+            screenshot_path=screenshot_path,
+        )
+
+    def _save_screenshot(self, screenshot, click_coords=None) -> str | None:
+        """Save a screenshot to the report directory, optionally with a click annotation."""
+        if not self.report_dir:
+            return None
+
+        screenshots_dir = os.path.join(self.report_dir, "screenshots")
+        os.makedirs(screenshots_dir, exist_ok=True)
+
+        img = screenshot.copy()
+
+        if click_coords:
+            self._draw_crosshair(img, *click_coords)
+
+        path = os.path.join(screenshots_dir, f"step_{self._step_counter}.png")
+        img.save(path)
+        return path
+
+    @staticmethod
+    def _draw_crosshair(img, x, y, size=30, color="red", width=2):
+        """Draw a crosshair and circle annotation at the click location."""
+        draw = ImageDraw.Draw(img)
+        # Crosshair lines
+        draw.line([(x - size, y), (x + size, y)], fill=color, width=width)
+        draw.line([(x, y - size), (x, y + size)], fill=color, width=width)
+        # Circle around click point
+        r = size // 2
+        draw.ellipse(
+            [(x - r, y - r), (x + r, y + r)], outline=color, width=width
         )

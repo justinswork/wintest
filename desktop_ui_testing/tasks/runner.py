@@ -1,10 +1,14 @@
+import os
+import re
 import subprocess
 import time
 import ctypes
 import ctypes.wintypes
+from datetime import datetime
 
 from .schema import TaskDefinition, TaskResult
 from ..core.agent import Agent
+from ..reporting.reporter import ReportGenerator
 
 
 class TaskRunner:
@@ -16,6 +20,10 @@ class TaskRunner:
 
     def run(self, task: TaskDefinition) -> TaskResult:
         """Execute all steps in a task definition."""
+        # Create timestamped report directory
+        report_dir = self._create_report_dir(task.name)
+        self.agent.report_dir = report_dir
+
         print(f"\n{'=' * 40}")
         print(f"TASK: {task.name}")
         print(f"STEPS: {len(task.steps)}")
@@ -56,10 +64,24 @@ class TaskRunner:
         task_result = TaskResult(task_name=task.name, step_results=results)
         self._print_summary(task_result)
 
+        # Generate reports
+        reporter = ReportGenerator(report_dir)
+        html_path = reporter.generate(task_result)
+        print(f"\nReport: {html_path}")
+
         if task.application:
             self._close_application(task.application)
 
         return task_result
+
+    @staticmethod
+    def _create_report_dir(task_name: str) -> str:
+        """Create a timestamped report directory under reports/."""
+        safe_name = re.sub(r"[^\w\-]", "_", task_name)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        report_dir = os.path.join("reports", f"{timestamp}_{safe_name}")
+        os.makedirs(report_dir, exist_ok=True)
+        return report_dir
 
     def _launch_application(self, app_config: dict):
         """Close any existing instances and launch the application fresh."""
