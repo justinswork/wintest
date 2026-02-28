@@ -43,13 +43,9 @@ async def create_task(task: TaskModel):
 
 @router.put("/{filename}", response_model=dict)
 async def update_task(filename: str, task: TaskModel):
-    """Update an existing task file."""
-    from pathlib import Path
-    path = Path(task_service.TASKS_DIR) / filename
-    if not path.exists():
-        raise HTTPException(status_code=404, detail=f"Task not found: {filename}")
+    """Create or update a task file."""
     task_service.save_task(task, filename=filename)
-    return {"filename": filename, "message": "Task updated."}
+    return {"filename": filename, "message": "Task saved."}
 
 
 @router.delete("/{filename}")

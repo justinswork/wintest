@@ -50,20 +50,27 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
           currentLabel: msg.label ?? null,
         });
         break;
-      case 'step_completed':
-        set((state) => ({
-          stepResults: [...state.stepResults, {
-            step_num: msg.step_num ?? 0,
-            description: msg.label ?? '',
-            action: '',
-            passed: msg.passed ?? false,
-            duration_seconds: msg.duration_seconds ?? 0,
-            error: msg.error ?? null,
-            coordinates: msg.coordinates ?? null,
-            screenshot_base64: msg.screenshot_base64 ?? null,
-          }],
-        }));
+      case 'step_completed': {
+        const stepNum = msg.step_num ?? 0;
+        set((state) => {
+          if (state.stepResults.some(r => r.step_num === stepNum)) {
+            return state;
+          }
+          return {
+            stepResults: [...state.stepResults, {
+              step_num: stepNum,
+              description: msg.label ?? '',
+              action: '',
+              passed: msg.passed ?? false,
+              duration_seconds: msg.duration_seconds ?? 0,
+              error: msg.error ?? null,
+              coordinates: msg.coordinates ?? null,
+              screenshot_base64: msg.screenshot_base64 ?? null,
+            }],
+          };
+        });
         break;
+      }
       case 'run_completed':
         set({
           status: msg.passed ? 'completed' : 'failed',

@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
+import { ToastContainer } from '../common/Toast';
 
 export function AppShell() {
   return (
@@ -8,6 +9,7 @@ export function AppShell() {
       <main className="main-content">
         <Outlet />
       </main>
+      <ToastContainer />
     </div>
   );
 }

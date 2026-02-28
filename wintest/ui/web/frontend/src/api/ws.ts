@@ -6,8 +6,11 @@ export function useExecutionWebSocket(onMessage: (msg: WsMessage) => void) {
   const [connected, setConnected] = useState(false);
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
+  const closedRef = useRef(false);
 
   const connect = useCallback(() => {
+    if (closedRef.current) return;
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const url = `${protocol}//${window.location.host}/api/ws/execution`;
     const ws = new WebSocket(url);
@@ -15,7 +18,9 @@ export function useExecutionWebSocket(onMessage: (msg: WsMessage) => void) {
     ws.onopen = () => setConnected(true);
     ws.onclose = () => {
       setConnected(false);
-      setTimeout(connect, 3000);
+      if (!closedRef.current) {
+        setTimeout(connect, 3000);
+      }
     };
     ws.onmessage = (event) => {
       try {
@@ -28,8 +33,10 @@ export function useExecutionWebSocket(onMessage: (msg: WsMessage) => void) {
   }, []);
 
   useEffect(() => {
+    closedRef.current = false;
     connect();
     return () => {
+      closedRef.current = true;
       wsRef.current?.close();
     };
   }, [connect]);
