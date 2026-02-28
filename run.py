@@ -2,14 +2,14 @@ import logging
 import sys
 import torch
 
-from desktop_ui_testing.config.settings import Settings
-from desktop_ui_testing.config.logging import setup_logging
-from desktop_ui_testing.core.vision import VisionModel
-from desktop_ui_testing.core.screen import ScreenCapture
-from desktop_ui_testing.core.actions import ActionExecutor
-from desktop_ui_testing.core.agent import Agent
-from desktop_ui_testing.tasks.loader import load_task
-from desktop_ui_testing.tasks.runner import TaskRunner
+from wintest.config.settings import Settings
+from wintest.config.logging import setup_logging
+from wintest.core.vision import VisionModel
+from wintest.core.screen import ScreenCapture
+from wintest.core.actions import ActionExecutor
+from wintest.core.agent import Agent
+from wintest.tasks.loader import load_task
+from wintest.tasks.runner import TaskRunner
 
 if __name__ == "__main__":
     # --- Load configuration ---

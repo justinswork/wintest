@@ -21,10 +21,11 @@ class TaskRunner:
     def __init__(self, agent: Agent, settings: Settings = None):
         self.agent = agent
         self.settings = settings or Settings()
+        self.skip_report = False
         self._app_manager: Optional[ApplicationManager] = None
         self._recovery: Optional[RecoveryStrategy] = None
 
-    def run(self, task: TaskDefinition) -> TaskResult:
+    def run(self, task: TaskDefinition, progress_callback=None) -> TaskResult:
         """Execute all steps in a task definition."""
         effective = self.settings.merge_task_settings(task.settings)
 
@@ -85,6 +86,9 @@ class TaskRunner:
             label = step.description or step.action.value
             logger.info("[Step %d/%d] %s...", i, len(task.steps), label)
 
+            if progress_callback:
+                progress_callback.on_step_start(i, label)
+
             step_timeout = step.timeout or effective.timeout.step_timeout
             result = self.agent.execute_step(step, step_timeout=step_timeout)
 
@@ -98,6 +102,9 @@ class TaskRunner:
                     )
 
             results.append(result)
+
+            if progress_callback:
+                progress_callback.on_step_complete(i, result)
 
             status = "PASS" if result.passed else "FAIL"
             logger.info("  -> %s (%.1fs)", status, result.duration_seconds)
@@ -117,9 +124,10 @@ class TaskRunner:
         self._print_summary(task_result)
 
         # Generate reports
-        reporter = ReportGenerator(report_dir)
-        html_path = reporter.generate(task_result)
-        logger.info("Report: %s", html_path)
+        if not self.skip_report:
+            reporter = ReportGenerator(report_dir)
+            html_path = reporter.generate(task_result)
+            logger.info("Report: %s", html_path)
 
         if self._app_manager:
             self._app_manager.close()

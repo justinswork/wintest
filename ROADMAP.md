@@ -12,15 +12,15 @@ Each phase builds on the previous one and is independently useful.
 
 ### Deliverables
 
-- **`desktop_ui_testing/core/vision.py`** — `VisionModel` class
+- **`wintest/core/vision.py`** — `VisionModel` class
   - Model loading with 4-bit quantization (extracted from `run.py`)
   - All transformers compatibility patches encapsulated
   - `find_element(screenshot, element_name)` → returns parsed coordinates
   - `parse_coordinates(response_text)` → multi-pattern regex extraction of `[x, y]` from model output
-- **`desktop_ui_testing/core/screen.py`** — `ScreenCapture` class
+- **`wintest/core/screen.py`** — `ScreenCapture` class
   - Screenshot capture via pyautogui
   - `normalized_to_pixel(x, y)` → convert 0-1000 scale to actual screen pixels
-- **`desktop_ui_testing/core/actions.py`** — `ActionExecutor` class
+- **`wintest/core/actions.py`** — `ActionExecutor` class
   - `click(x, y)`, `type_text(text)`, `press_key(key)`, `hotkey(*keys)`, `scroll(amount)`
   - Configurable delays and pyautogui failsafe
 
@@ -40,15 +40,15 @@ Coordinate parsing — the model returns coordinates in varied formats. Mitigate
 
 ### Deliverables
 
-- **`desktop_ui_testing/core/agent.py`** — `Agent` class
+- **`wintest/core/agent.py`** — `Agent` class
   - Core loop: screenshot → ask model → parse → execute action → verify
   - Retry logic: if element not found, retry N times with delay
-- **`desktop_ui_testing/tasks/schema.py`** — data models
+- **`wintest/tasks/schema.py`** — data models
   - `Step` dataclass with action type, target, text, keys, expected result
   - `TaskDefinition` dataclass with name, steps, application config, settings
   - Action types: `click`, `double_click`, `right_click`, `type`, `press_key`, `hotkey`, `scroll`, `wait`, `verify`
-- **`desktop_ui_testing/tasks/loader.py`** — YAML parser
-- **`desktop_ui_testing/tasks/runner.py`** — `TaskRunner` class
+- **`wintest/tasks/loader.py`** — YAML parser
+- **`wintest/tasks/runner.py`** — `TaskRunner` class
   - Executes all steps in sequence
   - Fail-fast option (stop on first failure)
 - **`examples/notepad_test.yaml`** — example task file
@@ -95,14 +95,14 @@ Write a YAML file, run it, and watch the AI launch Notepad, type text, and verif
 
 ### Deliverables
 
-- **`desktop_ui_testing/reporting/models.py`** — `StepResult` and `TaskResult` dataclasses
+- **`wintest/reporting/models.py`** — `StepResult` and `TaskResult` dataclasses
   - Per-step: pass/fail, coordinates, screenshot, model response, duration
   - Per-task: aggregate pass/fail, timing, summary stats
-- **`desktop_ui_testing/reporting/reporter.py`** — `ReportGenerator` class
+- **`wintest/reporting/reporter.py`** — `ReportGenerator` class
   - JSON report with full structured data
   - HTML report with embedded annotated screenshots (crosshair on click location)
   - Console summary with colored pass/fail indicators
-- **`desktop_ui_testing/reporting/logger.py`** — structured logging setup
+- **`wintest/reporting/logger.py`** — structured logging setup
 
 ### Testable outcome
 
@@ -120,16 +120,16 @@ Run a task and open an HTML report in a browser showing each step with screensho
 
 ### Deliverables
 
-- **`desktop_ui_testing/config/settings.py`** — global configuration
+- **`wintest/config/settings.py`** — global configuration
   - Model settings (path, quantization, max tokens)
   - Action settings (delays, retries, timeouts)
   - Loadable from `config.yaml`
-- **`desktop_ui_testing/core/app_manager.py`** — `ApplicationManager` class
+- **`wintest/core/app_manager.py`** — `ApplicationManager` class
   - Launch application by path
   - Focus window by title (via win32gui)
   - Check if process is running
   - Close application (graceful or force)
-- **`desktop_ui_testing/core/recovery.py`** — `RecoveryStrategy` class
+- **`wintest/core/recovery.py`** — `RecoveryStrategy` class
   - Dismiss unexpected dialogs (press Escape)
   - Re-focus target application window
   - Common recovery patterns
@@ -151,19 +151,19 @@ Launch an app, run a test, handle an unexpected dialog mid-test, and close the a
 
 ### Deliverables
 
-- **`desktop_ui_testing/ui/cli.py`** — Click-based CLI
-  - `duit run <task.yaml>` — execute a test task, generate report
-  - `duit validate <task.yaml>` — check task file for errors
-  - `duit init` — generate a template task file
-  - `duit list-actions` — show available action types
-  - `duit interactive` — type natural language commands, AI executes them live
-- **`pyproject.toml`** — package config with `duit` entry point
+- **`wintest/ui/cli.py`** — Click-based CLI
+  - `wintestrun <task.yaml>` — execute a test task, generate report
+  - `wintestvalidate <task.yaml>` — check task file for errors
+  - `wintestinit` — generate a template task file
+  - `wintestlist-actions` — show available action types
+  - `wintestinteractive` — type natural language commands, AI executes them live
+- **`pyproject.toml`** — package config with `wintest` entry point
 - Progress display during execution (step N/M, current action)
 - Colored terminal output
 
 ### Testable outcome
 
-`pip install -e .` then `duit run examples/notepad_test.yaml` from any directory.
+`pip install -e .` then `wintestrun examples/notepad_test.yaml` from any directory.
 
 ### New dependencies
 
@@ -177,7 +177,7 @@ Launch an app, run a test, handle an unexpected dialog mid-test, and close the a
 
 ### Deliverables
 
-- **`desktop_ui_testing/ui/web/app.py`** — FastAPI backend
+- **`wintest/ui/web/app.py`** — FastAPI backend
   - REST API for running tasks, checking status, viewing results
   - WebSocket for live screenshot streaming during execution
 - **Web frontend** — HTML/JS at `localhost:8080`
@@ -202,14 +202,14 @@ Open browser, create a test visually, run it, watch live, review results.
 ## Project Structure (End State)
 
 ```
-DesktopUITesting/
+wintest/
     run.py                    # Entry point (thin launcher)
     requirements.txt
     pyproject.toml
     README.md
     ROADMAP.md
 
-    desktop_ui_testing/       # Main package
+    wintest/       # Main package
         core/
             vision.py         # Model loading, inference, coordinate parsing
             screen.py         # Screenshot capture, coordinate mapping

@@ -1,6 +1,6 @@
-# DesktopUITesting
+# wintest
 
-AI-powered desktop UI element detection using [InternVL2-8B](https://huggingface.co/OpenGVLab/InternVL2-8B). Takes a live screenshot, sends it to a vision-language model running locally on your GPU, and returns the coordinates of a requested UI element.
+AI-powered Windows UI testing tool using [InternVL2-8B](https://huggingface.co/OpenGVLab/InternVL2-8B). Takes a live screenshot, sends it to a vision-language model running locally on your GPU, and returns the coordinates of a requested UI element.
 
 > **Status:** Early development — core detection pipeline is functional.
 
@@ -17,7 +17,7 @@ AI-powered desktop UI element detection using [InternVL2-8B](https://huggingface
 
 ## Vision
 
-The goal is to build a complete **AI-powered desktop UI testing tool**. The end state:
+The goal is to build a complete **AI-powered Windows UI testing tool**. The end state:
 
 - **Define test tasks** in simple YAML files — no code required
 - **Point it at any desktop application** — the tool launches the app and runs your tests
@@ -92,7 +92,7 @@ AI RESPONSE: The 'Windows Start button' is located in the bottom left corner...
 ## Project Structure
 
 ```
-DesktopUITesting/
+wintest/
   run.py              # Main script — model loading, screenshot, inference
   requirements.txt    # Python dependencies
   README.md
@@ -108,7 +108,7 @@ DesktopUITesting/
 | 2 | Agent Loop | Screenshot-analyze-act-verify loop, YAML task definitions | Not started |
 | 3 | Reporting | HTML/JSON reports with annotated screenshots, timing data | Not started |
 | 4 | App Management | Application lifecycle, error recovery, configuration | Not started |
-| 5 | CLI | `duit run task.yaml`, `duit interactive`, validation | Not started |
+| 5 | CLI | `wintest run task.yaml`, `wintest interactive`, validation | Not started |
 | 6 | Web UI | Visual task editor, live execution viewer, test suites | Not started |
 
 See [ROADMAP.md](ROADMAP.md) for full details on each phase.
