@@ -1,33 +1,33 @@
 # wintest
 
-AI-powered Windows UI testing tool using [InternVL2-8B](https://huggingface.co/OpenGVLab/InternVL2-8B). Takes a live screenshot, sends it to a vision-language model running locally on your GPU, and returns the coordinates of a requested UI element.
+AI-powered Windows UI testing tool using [InternVL2-8B](https://huggingface.co/OpenGVLab/InternVL2-8B). Define test tasks in simple YAML files, point them at any desktop application, and let an AI agent execute them autonomously — taking screenshots, finding UI elements, clicking, typing, scrolling, and verifying results.
 
-> **Status:** Early development — core detection pipeline is functional.
+Think of it as Selenium/Playwright, but for **any desktop application**, powered by visual AI instead of DOM selectors.
 
 ---
 
 ## How It Works
 
-1. Captures a screenshot of your desktop via `pyautogui`
-2. Preprocesses the image and feeds it to InternVL2-8B (a vision-language model)
-3. The model interprets the screenshot and returns the coordinates of the requested UI element
-4. No pixel matching or template matching — the model uses learned visual understanding
+1. You define a test task in YAML — what app to launch, what steps to perform
+2. wintest launches the application and captures a screenshot
+3. InternVL2-8B (a vision-language model running locally on your GPU) analyzes the screenshot and locates UI elements
+4. The agent executes actions (click, type, scroll, etc.) and verifies expected results
+5. A detailed report is generated with annotated screenshots of every step
+
+No pixel matching or template matching — the model uses learned visual understanding.
 
 ---
 
-## Vision
+## Features
 
-The goal is to build a complete **AI-powered Windows UI testing tool**. The end state:
-
-- **Define test tasks** in simple YAML files — no code required
-- **Point it at any desktop application** — the tool launches the app and runs your tests
-- **AI agent executes autonomously** — takes screenshots, finds UI elements, clicks, types, scrolls, and verifies results
-- **Get a pass/fail report** — with annotated screenshots showing exactly what the agent saw and did at each step
-- **Easy-to-use interface** — CLI for developers, web UI for everyone else
-
-Think of it as Selenium/Playwright, but for **any desktop application**, powered by visual AI instead of DOM selectors.
-
-See [ROADMAP.md](ROADMAP.md) for the detailed implementation plan.
+- **YAML task definitions** — no code required, describe tests in plain language
+- **9 action types** — click, double-click, right-click, type, key press, hotkey, scroll, wait, verify
+- **Automatic retry** — configurable retry attempts with delay for flaky element detection
+- **Application management** — launch, focus, and close applications automatically
+- **Error recovery** — dismiss unexpected dialogs, re-focus windows
+- **Rich reporting** — HTML and JSON reports with annotated screenshots at every step
+- **CLI interface** — `wintest run`, `wintest validate`, `wintest interactive`
+- **Web UI** — browser-based dashboard, task editor, live execution viewer, and report browser
 
 ---
 
@@ -56,16 +56,20 @@ PyTorch must be installed separately with CUDA support — it is not available f
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 ```
 
-### 2. Install remaining dependencies
+### 2. Install wintest
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
-### 3. Run
+### 3. (Optional) Build the web UI frontend
+
+Requires [Node.js](https://nodejs.org/) (LTS recommended).
 
 ```bash
-python run.py
+cd wintest/ui/web/frontend
+npm install
+npm run build
 ```
 
 On first run, the InternVL2-8B model weights (~16 GB) will be downloaded automatically from Hugging Face.
@@ -74,46 +78,63 @@ On first run, the InternVL2-8B model weights (~16 GB) will be downloaded automat
 
 ## Usage
 
-Edit the `target` variable in `run.py` to search for any visible UI element:
+### CLI
 
-```python
-target = "Windows Start button"
+```bash
+# Run a test task
+wintest run examples/notepad_test.yaml
+
+# Validate a task file for errors
+wintest validate examples/notepad_test.yaml
+
+# Generate a template task file
+wintest init
+
+# List available action types
+wintest list-actions
+
+# Interactive mode — type natural language commands
+wintest interactive
 ```
 
-The script will output the model's response with approximate coordinates:
+### Web UI
 
-```
-TARGET: Windows Start button
-AI RESPONSE: The 'Windows Start button' is located in the bottom left corner...
-```
-
----
-
-## Project Structure
-
-```
-wintest/
-  run.py              # Main script — model loading, screenshot, inference
-  requirements.txt    # Python dependencies
-  README.md
+```bash
+wintest web
 ```
 
----
+Open **http://127.0.0.1:8080** in your browser. From the web UI you can:
 
-## Roadmap
+- **Dashboard** — see all tasks, model status, and recent reports
+- **Task Editor** — create and edit tasks with drag-and-drop step reordering
+- **Execution Viewer** — watch live step progress and screenshots as tasks run
+- **Report Browser** — view past reports with step-by-step details and screenshots
 
-| Phase | Name | Description | Status |
-|-------|------|-------------|--------|
-| 1 | Core Engine | Refactor into package, reliable coordinate parsing, click/type actions | Not started |
-| 2 | Agent Loop | Screenshot-analyze-act-verify loop, YAML task definitions | Not started |
-| 3 | Reporting | HTML/JSON reports with annotated screenshots, timing data | Not started |
-| 4 | App Management | Application lifecycle, error recovery, configuration | Not started |
-| 5 | CLI | `wintest run task.yaml`, `wintest interactive`, validation | Not started |
-| 6 | Web UI | Visual task editor, live execution viewer, test suites | Not started |
+### Task file format
 
-See [ROADMAP.md](ROADMAP.md) for full details on each phase.
+```yaml
+name: "Notepad Basic Test"
+application:
+  path: "notepad.exe"
+  wait_after_launch: 3
 
----
+steps:
+  - action: click
+    target: "File menu"
+    description: "Open the File menu"
+
+  - action: type
+    text: "Hello, World!"
+    description: "Type test text"
+
+  - action: verify
+    target: "text area containing 'Hello, World!'"
+    description: "Verify text was typed"
+
+settings:
+  retry_attempts: 3
+  retry_delay: 2
+```
 
 ## Known Limitations
 
@@ -121,3 +142,4 @@ See [ROADMAP.md](ROADMAP.md) for full details on each phase.
 - Single-monitor only (captures the primary display)
 - The model was not specifically trained on custom application UIs — accuracy on non-standard elements may be lower
 - First run requires a large model download (~16 GB)
+- One task execution at a time (GPU is single-threaded)
