@@ -5,6 +5,7 @@ import { TaskEditor } from './pages/TaskEditor';
 import { ExecutionViewer } from './pages/ExecutionViewer';
 import { ReportList } from './pages/ReportList';
 import { ReportViewer } from './pages/ReportViewer';
+import { Settings } from './pages/Settings';
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
       { path: '/execution', element: <ExecutionViewer /> },
       { path: '/reports', element: <ReportList /> },
       { path: '/reports/:reportId', element: <ReportViewer /> },
+      { path: '/settings', element: <Settings /> },
     ],
   },
 ]);

@@ -11,6 +11,7 @@ export function Navbar() {
         <NavLink to="/tasks/new">New Task</NavLink>
         <NavLink to="/execution">Execution</NavLink>
         <NavLink to="/reports">Reports</NavLink>
+        <NavLink to="/settings">Settings</NavLink>
       </div>
     </nav>
   );
