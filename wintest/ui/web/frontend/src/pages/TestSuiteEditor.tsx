@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Save, GripVertical, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -26,13 +27,13 @@ function SortableTestItem({ id, path, index, total, onMove, onRemove, t }: {
 
   return (
     <div ref={setNodeRef} style={style} className="test-suite-test-item">
-      <div className="drag-handle" {...attributes} {...listeners}>&#x2630;</div>
+      <div className="drag-handle" {...attributes} {...listeners}><GripVertical size={16} /></div>
       <span className="test-suite-test-index">{index + 1}</span>
       <span className="test-suite-test-path">{path}</span>
       <div className="test-suite-test-actions">
-        <button className="btn btn-sm" onClick={() => onMove(index, -1)} disabled={index === 0}>&uarr;</button>
-        <button className="btn btn-sm" onClick={() => onMove(index, 1)} disabled={index === total - 1}>&darr;</button>
-        <button className="btn btn-danger btn-sm" onClick={() => onRemove(index)}>{t('common.remove')}</button>
+        <button className="btn-icon" onClick={() => onMove(index, -1)} disabled={index === 0} title={t('common.moveUp')}><ChevronUp size={16} /></button>
+        <button className="btn-icon" onClick={() => onMove(index, 1)} disabled={index === total - 1} title={t('common.moveDown')}><ChevronDown size={16} /></button>
+        <button className="btn-icon danger" onClick={() => onRemove(index)} title={t('common.remove')}><X size={16} /></button>
       </div>
     </div>
   );
@@ -136,7 +137,7 @@ export function TestSuiteEditor() {
         <h1>{isEditing ? t('testSuiteEditor.editTestSuite', { name: testSuite.name }) : t('testSuiteEditor.newTestSuite')}</h1>
         <div className="header-actions">
           <button className="btn btn-primary" onClick={handleSave} disabled={saving || !testSuite.name}>
-            {saving ? t('testSuiteEditor.saving') : t('testSuiteEditor.save')}
+            <Save size={16} />{saving ? t('testSuiteEditor.saving') : t('testSuiteEditor.save')}
           </button>
         </div>
       </div>

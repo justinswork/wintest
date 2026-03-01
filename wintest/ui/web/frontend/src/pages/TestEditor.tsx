@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useBlocker } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Save, CheckCircle, Play, Plus } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useExecutionStore } from '../stores/executionStore';
 import { StepList } from '../components/tasks/StepList';
@@ -167,7 +168,7 @@ export function TestEditor() {
         <h2>{isEditing ? t('testEditor.editTest', { name: test.name }) : t('testEditor.newTest')}</h2>
         <div className="header-actions">
           {savedFilename && (
-            <button className="btn btn-secondary" onClick={handleValidate}>{t('testEditor.validate')}</button>
+            <button className="btn btn-secondary" onClick={handleValidate}><CheckCircle size={16} />{t('testEditor.validate')}</button>
           )}
 
           <div className="save-button-group" ref={saveMenuRef}>
@@ -176,7 +177,7 @@ export function TestEditor() {
               onClick={handleSave}
               disabled={saving || !test.name || !dirty}
             >
-              {saving ? t('testEditor.saving') : t('testEditor.save')}
+              <Save size={16} />{saving ? t('testEditor.saving') : t('testEditor.save')}
             </button>
             {savedFilename && (
               <button
@@ -202,7 +203,7 @@ export function TestEditor() {
               onClick={handleRun}
               disabled={status === 'running'}
             >
-              {t('testEditor.run')}
+              <Play size={16} />{t('testEditor.run')}
             </button>
           )}
         </div>
@@ -232,7 +233,7 @@ export function TestEditor() {
         <label>{t('testEditor.steps')}</label>
         <StepList steps={test.steps} onChange={handleStepsChange} />
         <button className="btn btn-secondary" onClick={addStep} style={{ marginTop: '0.5rem' }}>
-          {t('testEditor.addStep')}
+          <Plus size={16} />{t('testEditor.addStep')}
         </button>
       </div>
     </div>

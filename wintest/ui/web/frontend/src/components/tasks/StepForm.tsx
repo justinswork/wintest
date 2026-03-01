@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { X, HelpCircle } from 'lucide-react';
 import type { Step, FieldInfo } from '../../api/types';
 import { useTestStore } from '../../stores/testStore';
 import { StepPicker } from './StepPicker';
@@ -114,14 +115,14 @@ export function StepForm({ step, index, onChange, onDelete }: Props) {
       <div className="step-form-header">
         <span className="step-number">#{index + 1}</span>
         <StepPicker value={step.action} onChange={v => update('action', v)} />
-        <Link to={`/help#step-${step.action}`} className="help-btn" title={t('stepForm.helpTooltip')}>?</Link>
+        <Link to={`/help#step-${step.action}`} className="help-btn" title={t('stepForm.helpTooltip')}><HelpCircle size={14} /></Link>
         <input
           className="input flex-1"
           placeholder={t('stepForm.descriptionPlaceholder')}
           value={step.description}
           onChange={e => update('description', e.target.value)}
         />
-        <button className="btn btn-danger btn-sm" onClick={() => onDelete(index)}>{t('common.remove')}</button>
+        <button className="btn-icon danger" onClick={() => onDelete(index)} title={t('common.remove')}><X size={16} /></button>
       </div>
 
       <div className="step-form-fields">

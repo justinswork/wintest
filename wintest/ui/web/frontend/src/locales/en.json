@@ -7,6 +7,8 @@
   "nav.settings": "Settings",
   "nav.newTestSuite": "New Test Suite",
   "nav.help": "Help",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar",
 
   "dashboard.modelStatus": "Model Status",
   "dashboard.modelLoaded": "Model Loaded",
@@ -40,7 +42,7 @@
   "testEditor.testName": "Test Name",
   "testEditor.testNamePlaceholder": "e.g. Notepad Basic Test",
   "testEditor.steps": "Steps",
-  "testEditor.addStep": "+ Add Step",
+  "testEditor.addStep": "Add Step",
   "testEditor.saved": "Test saved successfully",
   "testEditor.saveFailed": "Failed to save test",
   "testEditor.savedAs": "Saved as {{filename}}",
@@ -145,6 +147,8 @@
   "common.edit": "Edit",
   "common.delete": "Delete",
   "common.remove": "Remove",
+  "common.moveUp": "Move up",
+  "common.moveDown": "Move down",
   "common.pass": "PASS",
   "common.fail": "FAIL",
 

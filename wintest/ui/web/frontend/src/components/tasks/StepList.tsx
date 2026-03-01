@@ -1,6 +1,7 @@
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
 import type { Step } from '../../api/types';
 import { StepForm } from './StepForm';
 
@@ -24,7 +25,7 @@ function SortableStep({ id, step, index, onStepChange, onStepDelete }: {
 
   return (
     <div ref={setNodeRef} style={style} className="sortable-step">
-      <div className="drag-handle" {...attributes} {...listeners}>&#x2630;</div>
+      <div className="drag-handle" {...attributes} {...listeners}><GripVertical size={16} /></div>
       <StepForm step={step} index={index} onChange={onStepChange} onDelete={onStepDelete} />
     </div>
   );

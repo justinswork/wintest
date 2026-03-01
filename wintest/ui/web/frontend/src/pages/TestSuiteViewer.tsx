@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Play, Pencil } from 'lucide-react';
 import { useTestSuiteStore } from '../stores/testSuiteStore';
 import { useExecutionStore } from '../stores/executionStore';
 import { executionApi } from '../api/client';
@@ -57,13 +58,13 @@ export function TestSuiteViewer() {
             onClick={handleRunTestSuite}
             disabled={runStatus === 'running'}
           >
-            {t('testSuiteViewer.runAll')}
+            <Play size={16} />{t('testSuiteViewer.runAll')}
           </button>
           <button
             className="btn btn-secondary"
             onClick={() => navigate(`/test-suites/${filename}/edit`)}
           >
-            {t('common.edit')}
+            <Pencil size={16} />{t('common.edit')}
           </button>
         </div>
       </div>
@@ -79,17 +80,19 @@ export function TestSuiteViewer() {
               <span className="test-suite-test-path">{path}</span>
               <div className="test-suite-test-actions">
                 <button
-                  className="btn btn-primary btn-sm"
+                  className="btn-icon"
                   onClick={() => handleRunSingleTest(path)}
                   disabled={runStatus === 'running'}
+                  title={t('common.run')}
                 >
-                  {t('common.run')}
+                  <Play size={16} />
                 </button>
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className="btn-icon"
                   onClick={() => navigate(`/tests/${path}/edit`)}
+                  title={t('common.edit')}
                 >
-                  {t('common.edit')}
+                  <Pencil size={16} />
                 </button>
               </div>
             </div>

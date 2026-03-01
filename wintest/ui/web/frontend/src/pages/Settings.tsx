@@ -1,12 +1,14 @@
 import { useTranslation } from 'react-i18next';
+import { Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '../stores/themeStore';
+import type { ReactNode } from 'react';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 
-const THEME_OPTIONS: { value: ThemePreference; icon: string; labelKey: string; descKey: string }[] = [
-  { value: 'light', icon: '☀', labelKey: 'settings.light', descKey: 'settings.lightDescription' },
-  { value: 'dark', icon: '🌙', labelKey: 'settings.dark', descKey: 'settings.darkDescription' },
-  { value: 'system', icon: '💻', labelKey: 'settings.system', descKey: 'settings.systemDescription' },
+const THEME_OPTIONS: { value: ThemePreference; icon: ReactNode; labelKey: string; descKey: string }[] = [
+  { value: 'light', icon: <Sun size={20} />, labelKey: 'settings.light', descKey: 'settings.lightDescription' },
+  { value: 'dark', icon: <Moon size={20} />, labelKey: 'settings.dark', descKey: 'settings.darkDescription' },
+  { value: 'system', icon: <Monitor size={20} />, labelKey: 'settings.system', descKey: 'settings.systemDescription' },
 ];
 
 const AVAILABLE_LANGUAGES: { code: string; name: string }[] = [

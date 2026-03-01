@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Trash2 } from 'lucide-react';
 import { reportApi } from '../api/client';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { showToast } from '../components/common/Toast';
@@ -51,8 +52,8 @@ export function ReportList() {
                 {new Date(report.generated_at).toLocaleString()}
               </p>
               <div className="card-actions">
-                <button className="btn btn-danger btn-sm" onClick={(e) => handleDelete(e, report.report_id)}>
-                  {t('common.delete')}
+                <button className="btn-icon danger" onClick={(e) => handleDelete(e, report.report_id)} title={t('common.delete')}>
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>

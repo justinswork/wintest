@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Plus, Play, Pencil, Trash2 } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useTestSuiteStore } from '../stores/testSuiteStore';
 import { useExecutionStore } from '../stores/executionStore';
@@ -57,7 +58,7 @@ export function Dashboard() {
       <div className="section">
         <div className="section-header">
           <h2>{t('dashboard.tests')}</h2>
-          <button className="btn btn-primary" onClick={() => navigate('/tests/new')}>{t('dashboard.newTest')}</button>
+          <button className="btn btn-primary" onClick={() => navigate('/tests/new')}><Plus size={16} />{t('dashboard.newTest')}</button>
         </div>
         {tests.length === 0 ? (
           <p className="empty-state">{t('dashboard.noTests')}</p>
@@ -68,14 +69,14 @@ export function Dashboard() {
                 <h3>{test.name}</h3>
                 <p className="text-muted">{test.filename} &middot; {test.step_count} steps</p>
                 <div className="card-actions">
-                  <button className="btn btn-primary" onClick={() => handleRun(test.filename)} disabled={status === 'running'}>
-                    {t('common.run')}
+                  <button className="btn-icon" onClick={() => handleRun(test.filename)} disabled={status === 'running'} title={t('common.run')}>
+                    <Play size={16} />
                   </button>
-                  <button className="btn btn-secondary" onClick={() => navigate(`/tests/${test.filename}/edit`)}>
-                    {t('common.edit')}
+                  <button className="btn-icon" onClick={() => navigate(`/tests/${test.filename}/edit`)} title={t('common.edit')}>
+                    <Pencil size={16} />
                   </button>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTest(test.filename, test.name)}>
-                    {t('common.delete')}
+                  <button className="btn-icon danger" onClick={() => handleDeleteTest(test.filename, test.name)} title={t('common.delete')}>
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -87,7 +88,7 @@ export function Dashboard() {
       <div className="section">
         <div className="section-header">
           <h2>{t('dashboard.testSuites')}</h2>
-          <button className="btn btn-primary" onClick={() => navigate('/test-suites/new')}>{t('dashboard.newTestSuite')}</button>
+          <button className="btn btn-primary" onClick={() => navigate('/test-suites/new')}><Plus size={16} />{t('dashboard.newTestSuite')}</button>
         </div>
         {testSuites.length === 0 ? (
           <p className="empty-state">{t('dashboard.noTestSuites')}</p>
@@ -100,7 +101,7 @@ export function Dashboard() {
                 {testSuite.description && <p className="text-muted">{testSuite.description}</p>}
                 <div className="card-actions" onClick={(e) => e.stopPropagation()}>
                   <button
-                    className="btn btn-primary"
+                    className="btn-icon"
                     onClick={async () => {
                       try {
                         await executionApi.runTestSuite(testSuite.filename);
@@ -110,14 +111,15 @@ export function Dashboard() {
                       }
                     }}
                     disabled={status === 'running'}
+                    title={t('common.run')}
                   >
-                    {t('common.run')}
+                    <Play size={16} />
                   </button>
-                  <button className="btn btn-secondary" onClick={() => navigate(`/test-suites/${testSuite.filename}/edit`)}>
-                    {t('common.edit')}
+                  <button className="btn-icon" onClick={() => navigate(`/test-suites/${testSuite.filename}/edit`)} title={t('common.edit')}>
+                    <Pencil size={16} />
                   </button>
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="btn-icon danger"
                     onClick={async () => {
                       if (!window.confirm(t('dashboard.deleteTestSuiteConfirm', { name: testSuite.name }))) return;
                       try {
@@ -127,8 +129,9 @@ export function Dashboard() {
                         showToast(t('dashboard.testSuiteDeleteFailed'), 'error');
                       }
                     }}
+                    title={t('common.delete')}
                   >
-                    {t('common.delete')}
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
