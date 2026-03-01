@@ -21,7 +21,7 @@ No pixel matching or template matching — the model uses learned visual underst
 ## Features
 
 - **YAML task definitions** — no code required, describe tests in plain language
-- **9 action types** — click, double-click, right-click, type, key press, hotkey, scroll, wait, verify
+- **Built-in support for test actions** — click, double-click, right-click, type, key press, hotkey, scroll, wait, verify...
 - **Automatic retry** — configurable retry attempts with delay for flaky element detection
 - **Application management** — launch, focus, and close applications automatically
 - **Error recovery** — dismiss unexpected dialogs, re-focus windows
@@ -138,8 +138,6 @@ settings:
 
 ## Known Limitations
 
-- Coordinate precision varies depending on the element and screen layout
 - Single-monitor only (captures the primary display)
-- The model was not specifically trained on custom application UIs — accuracy on non-standard elements may be lower
 - First run requires a large model download (~16 GB)
 - One task execution at a time (GPU is single-threaded)
