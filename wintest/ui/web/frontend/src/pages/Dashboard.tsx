@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, XCircle } from 'lucide-react';
 import { useExecutionStore } from '../stores/executionStore';
 import { useExecutionWebSocket } from '../api/ws';
 import { reportApi } from '../api/client';
@@ -13,12 +13,13 @@ const STATUS_KEYS: Record<string, string> = {
   running: 'execution.running',
   completed: 'execution.completed',
   failed: 'execution.failed',
+  cancelled: 'execution.cancelled',
 };
 
 export function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { modelStatus, loadModel, fetchStatus, handleWsMessage, status, testName, currentStep, totalSteps, stepResults, currentLabel, error } = useExecutionStore();
+  const { modelStatus, loadModel, fetchStatus, handleWsMessage, cancelRun, status, testName, currentStep, totalSteps, stepResults, currentLabel, error } = useExecutionStore();
   const [reports, setReports] = useState<ReportSummary[]>([]);
 
   useExecutionWebSocket(handleWsMessage);
@@ -32,7 +33,7 @@ export function Dashboard() {
   const passedCount = stepResults.filter(r => r.passed).length;
   const failedCount = stepResults.filter(r => !r.passed).length;
   const hasFailed = failedCount > 0;
-  const isComplete = status === 'completed' || status === 'failed';
+  const isComplete = status === 'completed' || status === 'failed' || status === 'cancelled';
   const progressClass = isComplete
     ? (hasFailed ? 'progress-failed' : 'progress-passed')
     : (hasFailed ? 'progress-warning' : '');
@@ -56,9 +57,16 @@ export function Dashboard() {
         <div className="section">
           <div className="section-header">
             <h2>{t('dashboard.execution')}</h2>
-            <button className="btn btn-secondary" onClick={() => navigate('/execution')}>
-              {t('dashboard.viewDetails')}<ArrowRight size={16} />
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {status === 'running' && (
+                <button className="btn btn-danger" onClick={(e) => { e.stopPropagation(); cancelRun(); }}>
+                  <XCircle size={16} />{t('execution.cancel')}
+                </button>
+              )}
+              <button className="btn btn-secondary" onClick={() => navigate('/execution')}>
+                {t('dashboard.viewDetails')}<ArrowRight size={16} />
+              </button>
+            </div>
           </div>
           <div className="card card-clickable" onClick={() => navigate('/execution')}>
             <div className="card-row">

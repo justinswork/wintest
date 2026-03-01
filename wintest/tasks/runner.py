@@ -41,6 +41,16 @@ class TestRunner:
         results = []
 
         for i, step in enumerate(test.steps, 1):
+            # Cancellation check
+            if progress_callback and hasattr(progress_callback, 'is_cancelled') and progress_callback.is_cancelled():
+                logger.info("Run cancelled by user.")
+                results.append(StepResult(
+                    step=step,
+                    passed=False,
+                    error="Run cancelled by user",
+                ))
+                break
+
             # Test-level timeout check
             if time.time() > test_deadline:
                 logger.error(

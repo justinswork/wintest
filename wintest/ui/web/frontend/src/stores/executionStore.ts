@@ -4,7 +4,7 @@ import type { StepResultData, WsMessage } from '../api/types';
 import { executionApi } from '../api/client';
 
 interface ExecutionState {
-  status: 'idle' | 'running' | 'completed' | 'failed';
+  status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
   runId: string | null;
   testName: string | null;
   currentStep: number;
@@ -16,6 +16,7 @@ interface ExecutionState {
 
   handleWsMessage: (msg: WsMessage) => void;
   startRun: (taskFile: string) => Promise<void>;
+  cancelRun: () => Promise<void>;
   loadModel: () => Promise<void>;
   fetchStatus: () => Promise<void>;
   reset: () => void;
@@ -77,6 +78,9 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
           status: msg.passed ? 'completed' : 'failed',
         });
         break;
+      case 'run_cancelled':
+        set({ status: 'cancelled' });
+        break;
       case 'run_failed':
         set({
           status: 'failed',
@@ -114,6 +118,14 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? i18next.t('errors.startRunFailed');
       set({ status: 'failed', error: typeof msg === 'string' ? msg : i18next.t('errors.runInProgress') });
+    }
+  },
+
+  cancelRun: async () => {
+    try {
+      await executionApi.cancel();
+    } catch {
+      // ignore — run may have already finished
     }
   },
 

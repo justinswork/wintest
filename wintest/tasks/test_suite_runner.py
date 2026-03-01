@@ -26,6 +26,7 @@ class TestSuiteRunner:
         progress_callback=None,
         on_test_start=None,
         on_test_complete=None,
+        cancel_check=None,
     ) -> TestSuiteResult:
         """Execute all tests in a suite.
 
@@ -44,6 +45,11 @@ class TestSuiteRunner:
         logger.info("=" * 40)
 
         for i, test_path in enumerate(suite.test_paths, 1):
+            # Cancellation check
+            if cancel_check and cancel_check():
+                logger.info("Suite run cancelled by user.")
+                break
+
             full_path = os.path.join(TESTS_DIR, test_path)
 
             try:

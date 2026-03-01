@@ -645,6 +645,7 @@ select.input {
 .status-running { background: var(--info-bg); color: var(--info); }
 .status-completed { background: var(--success-bg); color: var(--success); }
 .status-failed { background: var(--danger-bg); color: var(--danger); }
+.status-cancelled { background: var(--warning-bg); color: var(--warning); }
 
 .info-banner {
   background: var(--info-bg);

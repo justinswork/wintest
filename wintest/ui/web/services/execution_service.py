@@ -27,6 +27,10 @@ class WebSocketProgressCallback:
         self.total_steps = total_steps
         self.app_state = app_state
 
+    def is_cancelled(self) -> bool:
+        run = self.app_state.current_run
+        return run is not None and run.cancel_event.is_set()
+
     def on_step_start(self, step_num: int, label: str):
         if self.app_state.current_run:
             self.app_state.current_run.current_step = step_num
@@ -134,15 +138,26 @@ def _run_test(test_file: str, run_id: str, app_state: AppState, loop: asyncio.Ab
 
         result = runner.run(test, progress_callback=callback)
 
-        if app_state.current_run and app_state.current_run.run_id == run_id:
-            app_state.current_run.status = "completed" if result.passed else "failed"
+        cancelled = app_state.current_run and app_state.current_run.cancel_event.is_set()
 
-        app_state.broadcast_sync({
-            "type": "run_completed",
-            "run_id": run_id,
-            "passed": result.passed,
-            "summary": result.summary,
-        })
+        if app_state.current_run and app_state.current_run.run_id == run_id:
+            if cancelled:
+                app_state.current_run.status = "cancelled"
+            else:
+                app_state.current_run.status = "completed" if result.passed else "failed"
+
+        if cancelled:
+            app_state.broadcast_sync({
+                "type": "run_cancelled",
+                "run_id": run_id,
+            })
+        else:
+            app_state.broadcast_sync({
+                "type": "run_completed",
+                "run_id": run_id,
+                "passed": result.passed,
+                "summary": result.summary,
+            })
 
     except Exception as e:
         logger.error("Run %s failed: %s", run_id, e)
@@ -160,6 +175,15 @@ def _run_test(test_file: str, run_id: str, app_state: AppState, loop: asyncio.Ab
             app_state.last_run = app_state.current_run
             if app_state.current_run.status == "running":
                 app_state.current_run.status = "failed"
+
+
+def cancel_run(app_state: AppState) -> bool:
+    """Request cancellation of the current run. Returns True if a run was cancelled."""
+    run = app_state.current_run
+    if run is None or run.status != "running":
+        return False
+    run.cancel_event.set()
+    return True
 
 
 def load_model(app_state: AppState):
@@ -266,21 +290,35 @@ def _run_test_suite(suite_file: str, run_id: str, app_state: AppState, loop: asy
                 "summary": result.summary,
             })
 
+        cancel_check = lambda: app_state.current_run and app_state.current_run.cancel_event.is_set()
+
         suite_result = test_suite_runner.run(
             suite,
             on_test_start=on_test_start,
             on_test_complete=on_test_complete,
+            cancel_check=cancel_check,
         )
 
-        if app_state.current_run and app_state.current_run.run_id == run_id:
-            app_state.current_run.status = "completed" if suite_result.passed else "failed"
+        cancelled = app_state.current_run and app_state.current_run.cancel_event.is_set()
 
-        app_state.broadcast_sync({
-            "type": "test_suite_completed",
-            "run_id": run_id,
-            "passed": suite_result.passed,
-            "summary": suite_result.summary,
-        })
+        if app_state.current_run and app_state.current_run.run_id == run_id:
+            if cancelled:
+                app_state.current_run.status = "cancelled"
+            else:
+                app_state.current_run.status = "completed" if suite_result.passed else "failed"
+
+        if cancelled:
+            app_state.broadcast_sync({
+                "type": "run_cancelled",
+                "run_id": run_id,
+            })
+        else:
+            app_state.broadcast_sync({
+                "type": "test_suite_completed",
+                "run_id": run_id,
+                "passed": suite_result.passed,
+                "summary": suite_result.summary,
+            })
 
     except Exception as e:
         logger.error("Suite run %s failed: %s", run_id, e)

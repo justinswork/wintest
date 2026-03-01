@@ -27,6 +27,7 @@ export const executionApi = {
   status: () => api.get<RunStatus>('/execution/status').then(r => r.data),
   modelStatus: () => api.get<{ status: string }>('/execution/model-status').then(r => r.data),
   loadModel: () => api.post('/execution/load-model').then(r => r.data),
+  cancel: () => api.post('/execution/cancel').then(r => r.data),
 };
 
 export const reportApi = {

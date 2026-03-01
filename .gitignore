@@ -212,3 +212,4 @@ reports/
 # Frontend build artifacts
 node_modules/
 wintest/ui/web/frontend/dist/
+/.claude/settings.local.json

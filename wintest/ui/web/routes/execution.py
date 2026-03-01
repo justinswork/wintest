@@ -34,6 +34,16 @@ async def run_test(request: RunRequest):
     return RunResponse(**result)
 
 
+@router.post("/cancel")
+async def cancel_run():
+    """Cancel the current running test."""
+    app_state = state_module.app_state
+    cancelled = execution_service.cancel_run(app_state)
+    if not cancelled:
+        raise HTTPException(status_code=409, detail="No run is currently in progress")
+    return {"status": "cancelling"}
+
+
 @router.get("/status", response_model=RunStatus)
 async def get_status():
     """Get current execution status."""

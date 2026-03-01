@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
+import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle } from 'lucide-react';
 import { useExecutionStore } from '../stores/executionStore';
 import { useExecutionWebSocket } from '../api/ws';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -10,6 +10,7 @@ const STATUS_KEYS: Record<string, string> = {
   running: 'execution.running',
   completed: 'execution.completed',
   failed: 'execution.failed',
+  cancelled: 'execution.cancelled',
 };
 
 const SORT_STORAGE_KEY = 'wintest-execution-sort';
@@ -35,7 +36,7 @@ export function ExecutionViewer() {
   const sortedResults = sortNewestFirst ? [...store.stepResults].reverse() : store.stepResults;
 
   const hasFailed = store.stepResults.some(r => !r.passed);
-  const isComplete = store.status === 'completed' || store.status === 'failed';
+  const isComplete = store.status === 'completed' || store.status === 'failed' || store.status === 'cancelled';
   const progressClass = isComplete
     ? (hasFailed ? 'progress-failed' : 'progress-passed')
     : (hasFailed ? 'progress-warning' : '');
@@ -48,9 +49,16 @@ export function ExecutionViewer() {
     <div className="execution-viewer">
       <div className="section-header">
         <h2>{store.testName ? t('execution.titleWithTask', { name: store.testName }) : t('execution.title')}</h2>
-        <span className={`execution-status status-${store.status}`}>
-          {t(STATUS_KEYS[store.status] ?? 'execution.idle')}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {store.status === 'running' && (
+            <button className="btn btn-danger" onClick={() => store.cancelRun()}>
+              <XCircle size={16} />{t('execution.cancel')}
+            </button>
+          )}
+          <span className={`execution-status status-${store.status}`}>
+            {t(STATUS_KEYS[store.status] ?? 'execution.idle')}
+          </span>
+        </div>
       </div>
 
       {store.modelStatus === 'loading' && (

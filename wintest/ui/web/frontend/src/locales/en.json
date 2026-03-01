@@ -84,6 +84,8 @@
   "execution.running": "RUNNING",
   "execution.completed": "COMPLETED",
   "execution.failed": "FAILED",
+  "execution.cancelled": "CANCELLED",
+  "execution.cancel": "Cancel",
   "execution.modelLoading": "Loading AI model... This may take a minute.",
   "execution.noExecution": "No active execution. Go to the Dashboard to run a test.",
   "execution.stepRunning": "Running...",

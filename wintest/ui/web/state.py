@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Optional
@@ -15,10 +16,11 @@ logger = logging.getLogger(__name__)
 class RunState:
     run_id: str
     test_name: str
-    status: str  # running, completed, failed
+    status: str  # running, completed, failed, cancelled
     current_step: int = 0
     total_steps: int = 0
     step_results: list = field(default_factory=list)
+    cancel_event: threading.Event = field(default_factory=threading.Event)
 
 
 class AppState:
