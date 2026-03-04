@@ -1,0 +1,60 @@
+name: Tests
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  python:
+    name: Python Tests
+    # Must run on Windows — app_manager imports ctypes.wintypes (Windows-only),
+    # and vision.py imports torch/transformers at module level.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: pip-
+
+      # Install CPU-only torch first to avoid downloading the 2.5 GB CUDA build.
+      # pip will skip reinstalling it when processing the package's torch>=2.6.0 dep.
+      - name: Install CPU-only PyTorch
+        run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install package and test dependencies
+        run: pip install -e ".[test]"
+
+      - name: Run tests
+        run: pytest --tb=short
+
+  frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: wintest/ui/web/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: wintest/ui/web/frontend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: wintest/ui/web/frontend
+        run: npm test
