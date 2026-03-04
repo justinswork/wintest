@@ -1,3 +1,5 @@
+[![Tests](https://github.com/justinswork/WinTest/actions/workflows/tests.yml/badge.svg)](https://github.com/justinswork/WinTest/actions/workflows/tests.yml)
+
 # wintest
 
 AI-powered Windows UI testing tool using [InternVL2-8B](https://huggingface.co/OpenGVLab/InternVL2-8B). Define test tasks in simple YAML files, point them at any desktop application, and let an AI agent execute them autonomously — taking screenshots, finding UI elements, clicking, typing, scrolling, and verifying results.
