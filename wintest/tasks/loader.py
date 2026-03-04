@@ -38,7 +38,7 @@ def load_test(filepath: str, settings=None) -> TestDefinition:
         if registry.get(step_action) is None:
             raise ValueError(
                 f"Step {i + 1}: unknown action '{step_action}'. "
-                f"Valid actions: {registry.step_names()}"
+                f"Valid actions: {registry.action_names()}"
             )
 
         steps.append(Step(
