@@ -1,8 +1,5 @@
 # Future Improvements
 
-## Live Console Log Viewer
-Show the real-time console/log output for a running test or test suite in the web UI. This would allow users to see detailed runner logs, model responses, and debug info without needing access to the server terminal.
-
 ## Export Reports to PDF
 Add the ability to export test reports as PDF files. This would make it easy to share results with stakeholders or archive them outside the application.
 
