@@ -99,6 +99,7 @@ class StepInfo(BaseModel):
     description: str
     required_fields: list[str]
     fields: list[FieldInfo] = []
+    is_runner_step: bool = False
 
 
 class TestSuiteModel(BaseModel):

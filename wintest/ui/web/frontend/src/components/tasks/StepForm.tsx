@@ -144,6 +144,9 @@ export function StepForm({ step, index, onChange, onDelete }: Props) {
   // Check if this step has a "verify"-style expected checkbox
   const isVerify = step.action === 'verify';
 
+  // Runner-level steps don't use retry/timeout
+  const showAdvancedSection = !stepDef?.is_runner_step;
+
   const hasNonDefaultAdvanced =
     step.retry_attempts !== 3 ||
     step.retry_delay !== 2.0 ||
@@ -155,12 +158,7 @@ export function StepForm({ step, index, onChange, onDelete }: Props) {
         <span className="step-number">#{index + 1}</span>
         <StepPicker value={step.action} onChange={v => update('action', v)} />
         <Link to={`/help#step-${step.action}`} className="help-btn" title={t('stepForm.helpTooltip')}><HelpCircle size={14} /></Link>
-        <input
-          className="input flex-1"
-          placeholder={t('stepForm.descriptionPlaceholder')}
-          value={step.description}
-          onChange={e => update('description', e.target.value)}
-        />
+        <div className="flex-1" />
         <button className="btn-icon danger" onClick={() => onDelete(index)} title={t('common.remove')}><X size={16} /></button>
       </div>
 
@@ -180,57 +178,67 @@ export function StepForm({ step, index, onChange, onDelete }: Props) {
             {t('stepForm.expectedLabel')}
           </label>
         )}
+        <input
+          className="input step-description"
+          placeholder={t('stepForm.descriptionPlaceholder')}
+          value={step.description}
+          onChange={e => update('description', e.target.value)}
+        />
       </div>
 
-      <button
-        className="step-advanced-toggle"
-        onClick={() => setShowAdvanced(!showAdvanced)}
-      >
-        {showAdvanced ? t('stepForm.hideAdvanced') : t('stepForm.showAdvanced')}
-        {!showAdvanced && hasNonDefaultAdvanced && <span className="advanced-indicator" />}
-      </button>
+      {showAdvancedSection && (
+        <>
+          <button
+            className="step-advanced-toggle"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            {showAdvanced ? t('stepForm.hideAdvanced') : t('stepForm.showAdvanced')}
+            {!showAdvanced && hasNonDefaultAdvanced && <span className="advanced-indicator" />}
+          </button>
 
-      {showAdvanced && (
-        <div className="step-advanced">
-          <div className="step-advanced-row">
-            <label>
-              {t('stepForm.retryAttempts')}
-              <input
-                className="input"
-                type="number"
-                min="0"
-                value={step.retry_attempts}
-                onChange={e => update('retry_attempts', parseInt(e.target.value) || 0)}
-              />
-            </label>
-            <label>
-              {t('stepForm.retryDelay')}
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.5"
-                value={step.retry_delay}
-                onChange={e => update('retry_delay', parseFloat(e.target.value) || 0)}
-              />
-            </label>
-            <label>
-              {t('stepForm.timeout')}
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="1"
-                placeholder={t('stepForm.timeoutPlaceholder')}
-                value={step.timeout ?? ''}
-                onChange={e => {
-                  const v = e.target.value;
-                  update('timeout', v === '' ? null : parseFloat(v) || null);
-                }}
-              />
-            </label>
-          </div>
-        </div>
+          {showAdvanced && (
+            <div className="step-advanced">
+              <div className="step-advanced-row">
+                <label>
+                  {t('stepForm.retryAttempts')}
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    value={step.retry_attempts}
+                    onChange={e => update('retry_attempts', parseInt(e.target.value) || 0)}
+                  />
+                </label>
+                <label>
+                  {t('stepForm.retryDelay')}
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={step.retry_delay}
+                    onChange={e => update('retry_delay', parseFloat(e.target.value) || 0)}
+                  />
+                </label>
+                <label>
+                  {t('stepForm.timeout')}
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder={t('stepForm.timeoutPlaceholder')}
+                    value={step.timeout ?? ''}
+                    onChange={e => {
+                      const v = e.target.value;
+                      update('timeout', v === '' ? null : parseFloat(v) || null);
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

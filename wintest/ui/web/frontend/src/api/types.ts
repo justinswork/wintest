@@ -44,6 +44,7 @@ export interface StepInfo {
   description: string;
   required_fields: string[];
   fields: FieldInfo[];
+  is_runner_step: boolean;
 }
 
 export interface ValidationResult {

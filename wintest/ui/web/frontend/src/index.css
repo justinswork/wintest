@@ -537,6 +537,12 @@ select.input {
   display: none;
 }
 
+.step-description {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+  color: var(--text-muted);
+}
+
 .step-checkbox {
   display: flex;
   align-items: center;
