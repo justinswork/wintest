@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, XCircle } from 'lucide-react';
+import { ArrowRight, XCircle, Trash2 } from 'lucide-react';
 import { useExecutionStore } from '../stores/executionStore';
 import { useExecutionWebSocket } from '../api/ws';
 import { reportApi } from '../api/client';
@@ -28,6 +28,17 @@ export function Dashboard() {
     fetchStatus();
     reportApi.list().then(setReports);
   }, [fetchStatus]);
+
+  const handleDeleteReport = async (e: React.MouseEvent, reportId: string) => {
+    e.stopPropagation();
+    if (!window.confirm(t('reports.deleteConfirm'))) return;
+    try {
+      await reportApi.delete(reportId);
+      setReports(prev => prev.filter(r => r.report_id !== reportId));
+    } catch {
+      // ignore
+    }
+  };
 
   const showExecution = status !== 'idle' || testName;
   const passedCount = stepResults.filter(r => r.passed).length;
@@ -119,6 +130,11 @@ export function Dashboard() {
                 <p className="text-muted">
                   {t('reports.passedCount', { passed: report.passed_count, total: report.total })} &middot; {new Date(report.generated_at).toLocaleString()}
                 </p>
+                <div className="card-actions" onClick={e => e.stopPropagation()}>
+                  <button className="btn-icon danger" onClick={(e) => handleDeleteReport(e, report.report_id)} title={t('common.delete')}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
