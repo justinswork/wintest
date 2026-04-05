@@ -39,8 +39,8 @@ Re-run only the failed tests from a completed suite run, instead of re-running t
 ## Test Recorder
 Record clicks and keystrokes on the desktop and auto-generate a test YAML from the recording. Should capture mouse clicks (with screen region descriptions), keyboard input, and timing between actions. Ideally runs as an overlay or background listener that the user can start/stop from the web UI.
 
-## Import / Export Tests
-Export tests as shareable YAML bundles (with suites) and import them, for sharing across teams or machines.
+## Import / Export Test Bundles
+Tests are already plain YAML files that can be copied between machines. This item is about bundling — export a test suite and all its referenced test files as a single zip/archive, and import that bundle on another machine to recreate the suite and tests in one step.
 
 ## Keyboard Shortcuts
 Global hotkeys to start/stop runs without switching to the browser.
