@@ -1,5 +1,13 @@
 # Future Improvements
 
+## Remote Access & Multi-User Support
+Allow the wintest web server to be accessed from other machines on the network so team members can view reports, trigger runs, and monitor progress without needing GPU hardware locally. The server already supports `--host 0.0.0.0` to bind to all interfaces, but exposing it requires:
+- **Authentication** — login system or API keys to prevent unauthorized access (critical since tests control mouse/keyboard on the host)
+- **Role-based access** — separate viewer (read-only: reports, status) and operator (can trigger/cancel runs) roles
+- **HTTPS** — encrypt traffic, especially credentials
+- **Concurrency UX** — clear feedback when a run is already in progress and another user tries to start one
+- Ties into the Environment Isolation item — remote-triggered runs shouldn't interfere with the host user's desktop
+
 ## Suite Reports & PDF Export
 Generate a combined report for test suite runs that includes a summary page (suite name, total tests, pass/fail counts) followed by the full report for each individual test. Export the combined suite report as a single PDF. Currently each test in a suite generates its own independent report with no suite-level aggregation.
 
