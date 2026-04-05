@@ -10,12 +10,13 @@ interface Props {
   onChange: (steps: Step[]) => void;
 }
 
-function SortableStep({ id, step, index, onStepChange, onStepDelete }: {
+function SortableStep({ id, step, index, onStepChange, onStepDelete, onStepDuplicate }: {
   id: string;
   step: Step;
   index: number;
   onStepChange: (i: number, s: Step) => void;
   onStepDelete: (i: number) => void;
+  onStepDuplicate: (i: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style = {
@@ -26,7 +27,7 @@ function SortableStep({ id, step, index, onStepChange, onStepDelete }: {
   return (
     <div ref={setNodeRef} style={style} className="sortable-step">
       <div className="drag-handle" {...attributes} {...listeners}><GripVertical size={16} /></div>
-      <StepForm step={step} index={index} onChange={onStepChange} onDelete={onStepDelete} />
+      <StepForm step={step} index={index} onChange={onStepChange} onDelete={onStepDelete} onDuplicate={onStepDuplicate} />
     </div>
   );
 }
@@ -58,6 +59,13 @@ export function StepList({ steps, onChange }: Props) {
     onChange(steps.filter((_, i) => i !== index));
   };
 
+  const handleStepDuplicate = (index: number) => {
+    const copy = { ...steps[index] };
+    const updated = [...steps];
+    updated.splice(index + 1, 0, copy);
+    onChange(updated);
+  };
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
@@ -69,6 +77,7 @@ export function StepList({ steps, onChange }: Props) {
             index={i}
             onStepChange={handleStepChange}
             onStepDelete={handleStepDelete}
+            onStepDuplicate={handleStepDuplicate}
           />
         ))}
       </SortableContext>

@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useBlocker } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Save, CheckCircle, Play, Plus, ClipboardPaste } from 'lucide-react';
+import { Save, CheckCircle, Play, Plus } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useExecutionStore } from '../stores/executionStore';
-import { useStepClipboard } from '../stores/stepClipboard';
 import { StepList } from '../components/tasks/StepList';
 import { VariablesEditor } from '../components/tasks/VariablesEditor';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -159,16 +158,8 @@ export function TestEditor() {
     updateTest({ ...test, steps });
   };
 
-  const copiedStep = useStepClipboard(s => s.copiedStep);
-
   const addStep = () => {
     updateTest({ ...test, steps: [...test.steps, newStep()] });
-  };
-
-  const pasteStep = () => {
-    if (copiedStep) {
-      updateTest({ ...test, steps: [...test.steps, { ...copiedStep }] });
-    }
   };
 
   if (loading && isEditing) return <LoadingSpinner message={t('testEditor.loading')} />;
@@ -251,16 +242,9 @@ export function TestEditor() {
       <div className="form-group">
         <label>{t('testEditor.steps')}</label>
         <StepList steps={test.steps} onChange={handleStepsChange} />
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-          <button className="btn btn-secondary" onClick={addStep}>
-            <Plus size={16} />{t('testEditor.addStep')}
-          </button>
-          {copiedStep && (
-            <button className="btn btn-secondary" onClick={pasteStep}>
-              <ClipboardPaste size={16} />{t('testEditor.pasteStep')}
-            </button>
-          )}
-        </div>
+        <button className="btn btn-secondary" onClick={addStep} style={{ marginTop: '0.5rem' }}>
+          <Plus size={16} />{t('testEditor.addStep')}
+        </button>
       </div>
     </div>
   );

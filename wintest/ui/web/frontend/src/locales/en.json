@@ -47,7 +47,6 @@
   "testEditor.testNamePlaceholder": "e.g. Notepad Basic Test",
   "testEditor.steps": "Steps",
   "testEditor.addStep": "Add Step",
-  "testEditor.pasteStep": "Paste Step",
   "testEditor.saved": "Test saved successfully",
   "testEditor.saveFailed": "Failed to save test",
   "testEditor.savedAs": "Saved as {{filename}}",
@@ -162,7 +161,6 @@
   "help.parametersLabel": "Parameters",
   "help.exampleLabel": "Example",
 
-  "common.copy": "Copy",
   "common.duplicate": "Duplicate",
   "common.duplicated": "Duplicated successfully",
   "common.duplicateFailed": "Failed to duplicate",
