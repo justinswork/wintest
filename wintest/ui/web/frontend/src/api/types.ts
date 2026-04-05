@@ -13,6 +13,8 @@ export interface Step {
   timeout: number | null;
   app_path: string | null;
   app_title: string | null;
+  variable_name: string | null;
+  variable_value: string | null;
 }
 
 export interface Test {
@@ -20,6 +22,7 @@ export interface Test {
   filename: string | null;
   steps: Step[];
   settings: Record<string, unknown>;
+  variables: Record<string, string>;
 }
 
 export interface TestListItem {
@@ -162,5 +165,7 @@ export function newStep(): Step {
     timeout: null,
     app_path: null,
     app_title: null,
+    variable_name: null,
+    variable_value: null,
   };
 }

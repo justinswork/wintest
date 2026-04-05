@@ -59,6 +59,8 @@ def get_test(filename: str, settings=None) -> TestModel:
             timeout=step.timeout,
             app_path=step.app_path,
             app_title=step.app_title,
+            variable_name=step.variable_name,
+            variable_value=step.variable_value,
         ))
 
     return TestModel(
@@ -66,6 +68,7 @@ def get_test(filename: str, settings=None) -> TestModel:
         filename=filename,
         steps=steps,
         settings=test.settings,
+        variables=test.variables,
     )
 
 
@@ -110,7 +113,14 @@ def save_test(test: TestModel, filename: str | None = None) -> str:
             step_data["app_path"] = step.app_path
         if step.app_title is not None:
             step_data["app_title"] = step.app_title
+        if step.variable_name is not None:
+            step_data["variable_name"] = step.variable_name
+        if step.variable_value is not None:
+            step_data["variable_value"] = step.variable_value
         data["steps"].append(step_data)
+
+    if test.variables:
+        data["variables"] = test.variables
 
     if test.settings:
         data["settings"] = test.settings

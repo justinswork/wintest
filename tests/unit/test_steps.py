@@ -8,8 +8,10 @@ from wintest.tasks.validator import validate_test
 
 EXPECTED_ACTIONS = {
     "click", "double_click", "hotkey", "launch_application",
-    "press_key", "right_click", "scroll", "type", "verify", "wait",
+    "press_key", "right_click", "scroll", "set_variable", "type", "verify", "wait",
 }
+
+RUNNER_STEPS = {"launch_application", "set_variable"}
 
 
 class TestRegistry:
@@ -35,12 +37,12 @@ class TestRegistry:
             assert callable(defn.validate)
             assert callable(defn.execute)
 
-    def test_only_launch_application_is_runner_step(self):
+    def test_runner_steps(self):
         for defn in registry.all_definitions():
-            if defn.name == "launch_application":
-                assert defn.is_runner_step is True
+            if defn.name in RUNNER_STEPS:
+                assert defn.is_runner_step is True, f"{defn.name} should be a runner step"
             else:
-                assert defn.is_runner_step is False
+                assert defn.is_runner_step is False, f"{defn.name} should not be a runner step"
 
 
 class TestClickValidation:
@@ -161,6 +163,33 @@ class TestLaunchApplicationValidation:
             Step(action="launch_application"), 1
         )
         assert len(issues) == 1
+
+
+class TestSetVariableValidation:
+    def test_valid(self):
+        assert registry.get("set_variable").validate(
+            Step(action="set_variable", variable_name="x", variable_value="1"), 1
+        ) == []
+
+    def test_missing_variable_name(self):
+        issues = registry.get("set_variable").validate(
+            Step(action="set_variable", variable_value="1"), 1
+        )
+        assert len(issues) == 1
+        assert "variable_name" in issues[0]
+
+    def test_missing_variable_value(self):
+        issues = registry.get("set_variable").validate(
+            Step(action="set_variable", variable_name="x"), 1
+        )
+        assert len(issues) == 1
+        assert "variable_value" in issues[0]
+
+    def test_missing_both(self):
+        issues = registry.get("set_variable").validate(
+            Step(action="set_variable"), 1
+        )
+        assert len(issues) == 2
 
 
 class TestValidateTest:

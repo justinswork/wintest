@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional
 
 from .schema import TestDefinition, TestResult, StepResult
+from .variables import VariableStore
 from ..steps import registry
 from ..core.agent import Agent
 from ..core.power import prevent_sleep, allow_sleep
@@ -51,6 +52,7 @@ class TestRunner:
         fail_fast = test.settings.get("fail_fast", True)
         test_deadline = time.time() + effective.timeout.test_timeout
         results = []
+        variables = VariableStore(test.variables)
 
         for i, step in enumerate(test.steps, 1):
             # Cancellation check
@@ -85,9 +87,12 @@ class TestRunner:
             if progress_callback:
                 progress_callback.on_step_start(i, label)
 
+            # Resolve variable placeholders before execution
+            step = variables.resolve_step(step)
+
             defn = registry.get(step.action)
 
-            # Handle runner-level steps (e.g. launch_application)
+            # Handle runner-level steps (e.g. launch_application, set_variable)
             if defn and defn.is_runner_step:
                 start = time.time()
                 try:
@@ -96,6 +101,7 @@ class TestRunner:
                         "agent": self.agent,
                         "app_manager": self._app_manager,
                         "recovery": self._recovery,
+                        "variables": variables,
                     }
                     result = defn.execute(step, runner_ctx)
                     # Pick up any state changes from the step

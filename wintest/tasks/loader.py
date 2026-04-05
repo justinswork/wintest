@@ -19,6 +19,7 @@ def load_test(filepath: str, settings=None) -> TestDefinition:
         raise ValueError(f"Test file {filepath} missing or empty 'steps' field")
 
     test_settings = data.get("settings", {})
+    variables = data.get("variables", {})
 
     # Resolve retry defaults from Settings cascade or test YAML
     if settings:
@@ -56,10 +57,13 @@ def load_test(filepath: str, settings=None) -> TestDefinition:
             retry_attempts=step_data.get("retry_attempts", default_retries),
             retry_delay=step_data.get("retry_delay", default_retry_delay),
             timeout=step_data.get("timeout"),
+            variable_name=step_data.get("variable_name"),
+            variable_value=step_data.get("variable_value"),
         ))
 
     return TestDefinition(
         name=data["name"],
         steps=steps,
         settings=test_settings,
+        variables=variables,
     )

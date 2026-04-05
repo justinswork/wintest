@@ -5,6 +5,7 @@ import { Save, CheckCircle, Play, Plus } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useExecutionStore } from '../stores/executionStore';
 import { StepList } from '../components/tasks/StepList';
+import { VariablesEditor } from '../components/tasks/VariablesEditor';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { showToast } from '../components/common/Toast';
 import type { Test, Step } from '../api/types';
@@ -15,6 +16,7 @@ const EMPTY_TEST: Test = {
   filename: null,
   steps: [newStep()],
   settings: {},
+  variables: {},
 };
 
 export function TestEditor() {
@@ -226,6 +228,14 @@ export function TestEditor() {
           value={test.name}
           onChange={e => updateTest({ ...test, name: e.target.value })}
           placeholder={t('testEditor.testNamePlaceholder')}
+        />
+      </div>
+
+      <div className="form-group">
+        <label>{t('testEditor.variables')}</label>
+        <VariablesEditor
+          variables={test.variables ?? {}}
+          onChange={vars => updateTest({ ...test, variables: vars })}
         />
       </div>
 

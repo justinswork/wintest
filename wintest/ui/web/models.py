@@ -18,6 +18,8 @@ class StepModel(BaseModel):
     timeout: float | None = None
     app_path: str | None = None
     app_title: str | None = None
+    variable_name: str | None = None
+    variable_value: str | None = None
 
 
 class TestModel(BaseModel):
@@ -25,6 +27,7 @@ class TestModel(BaseModel):
     filename: str | None = None
     steps: list[StepModel]
     settings: dict = {}
+    variables: dict = {}
 
 
 class TestListItem(BaseModel):

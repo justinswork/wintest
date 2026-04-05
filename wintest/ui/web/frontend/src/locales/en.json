@@ -54,6 +54,11 @@
   "testEditor.loading": "Loading test...",
   "testEditor.saveAsPrompt": "Save as filename:",
   "testEditor.valid": "Test is valid.",
+  "testEditor.variables": "Variables",
+
+  "variablesEditor.namePlaceholder": "Variable name",
+  "variablesEditor.valuePlaceholder": "Initial value",
+  "variablesEditor.add": "Add Variable",
 
   "testSuiteEditor.newTestSuite": "New Test Suite",
   "testSuiteEditor.editTestSuite": "Edit Test Suite: {{name}}",
@@ -124,6 +129,8 @@
   "settings.language": "Language",
   "settings.languageDescription": "Choose the display language.",
 
+  "stepForm.variableNamePlaceholder": "Variable name",
+  "stepForm.variableValuePlaceholder": "Value (supports {{variable}} placeholders)",
   "stepForm.descriptionPlaceholder": "Description (optional)",
   "stepForm.targetPlaceholder": "Target element (e.g. 'File menu')",
   "stepForm.textPlaceholder": "Text to type",

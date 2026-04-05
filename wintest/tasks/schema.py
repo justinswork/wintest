@@ -18,6 +18,8 @@ class Step:
     retry_attempts: int = 3
     retry_delay: float = 2.0
     timeout: Optional[float] = None
+    variable_name: Optional[str] = None
+    variable_value: Optional[str] = None
 
 
 @dataclass
@@ -25,6 +27,7 @@ class TestDefinition:
     name: str
     steps: list[Step]
     settings: dict = field(default_factory=dict)
+    variables: dict = field(default_factory=dict)
 
 
 @dataclass
