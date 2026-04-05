@@ -6,9 +6,6 @@ Show the real-time console/log output for a running test or test suite in the we
 ## Export Reports to PDF
 Add the ability to export test reports as PDF files. This would make it easy to share results with stakeholders or archive them outside the application.
 
-## Duplicate Tests / Test Suites
-Add a "Duplicate" action to tests and test suites so users can quickly create a copy as a starting point for a new test, rather than building from scratch.
-
 ## User-Defined Custom Steps
 Allow users to define their own custom step types (composite steps or macros) that combine multiple built-in steps into a reusable action. This would reduce repetition across tests.
 
@@ -47,12 +44,6 @@ Show how long each test and step takes over time to catch performance regression
 
 ## File Comparison Assertion
 Add a step type (e.g. `compare_file`) that compares a file produced during a test against a known-good reference file. Useful for testing export workflows — run the app, trigger an export (Save As, etc.), then assert the output matches the expected file. Should support exact match, and optionally ignore whitespace or specific lines.
-
-## Copy / Paste Steps
-Allow copying and pasting steps within the test editor. Select one or more steps, copy them, and paste them at a different position in the same test or into a different test. Should support both keyboard shortcuts (Ctrl+C/V) and toolbar buttons.
-
-## Improved Drag-and-Drop Animations
-Fix the drag-and-drop step reordering so the dragged item animates smoothly to its new position instead of snapping back to its original location before moving. Investigate dnd-kit's `measuring` and `layoutMeasuring` options, or switch to a CSS-based transition approach that tracks the drop target position.
 
 ## Step Snippets
 Allow saving a group of steps as a reusable snippet file. Users could select a range of steps in the editor, save them as a named snippet (stored as a small YAML file), and later insert that snippet into any test. Useful for common setup/teardown sequences like "open File menu and click Save As" or "log into the application".

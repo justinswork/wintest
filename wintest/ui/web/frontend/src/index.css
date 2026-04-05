@@ -667,6 +667,21 @@ select.input {
   align-items: center;
 }
 
+.drag-preview {
+  background: var(--bg-surface);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+.drag-preview .step-form {
+  border: none;
+  padding: 0;
+  background: none;
+}
+
 .drag-handle:active {
   cursor: grabbing;
 }
