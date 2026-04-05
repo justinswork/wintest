@@ -60,6 +60,8 @@ async def get_status():
         current_step=run.current_step,
         total_steps=run.total_steps,
         step_results=run.step_results,
+        source_file=run.source_file,
+        run_type=run.run_type,
     )
 
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle } from 'lucide-react';
+import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle, RotateCcw } from 'lucide-react';
 import { useExecutionStore } from '../stores/executionStore';
 import { useExecutionWebSocket } from '../api/ws';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -45,6 +45,15 @@ export function ExecutionViewer() {
     ? store.stepResults[store.stepResults.length - 1]?.screenshot_base64
     : null;
 
+  const handleRunAgain = () => {
+    if (!store.sourceFile) return;
+    if (store.runType === 'suite') {
+      store.startSuiteRun(store.sourceFile);
+    } else {
+      store.startRun(store.sourceFile);
+    }
+  };
+
   return (
     <div className="execution-viewer">
       <div className="section-header">
@@ -53,6 +62,11 @@ export function ExecutionViewer() {
           {store.status === 'running' && (
             <button className="btn btn-danger" onClick={() => store.cancelRun()}>
               <XCircle size={16} />{t('execution.cancel')}
+            </button>
+          )}
+          {isComplete && store.sourceFile && (
+            <button className="btn btn-primary" onClick={handleRunAgain}>
+              <RotateCcw size={16} />{t('execution.runAgain')}
             </button>
           )}
           <span className={`execution-status status-${store.status}`}>

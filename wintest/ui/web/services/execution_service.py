@@ -84,6 +84,8 @@ def start_run(test_file: str, app_state: AppState) -> dict:
         test_name=test.name,
         status="running",
         total_steps=len(test.steps),
+        source_file=test_file,
+        run_type="test",
     )
     app_state.current_run = run_state
 
@@ -92,6 +94,8 @@ def start_run(test_file: str, app_state: AppState) -> dict:
         "run_id": run_id,
         "test_name": test.name,
         "total_steps": len(test.steps),
+        "source_file": test_file,
+        "run_type": "test",
     })
 
     loop = app_state.loop
@@ -224,6 +228,8 @@ def start_test_suite_run(suite_file: str, app_state: AppState) -> dict:
         test_name=f"Suite: {suite.name}",
         status="running",
         total_steps=0,
+        source_file=suite_file,
+        run_type="suite",
     )
     app_state.current_run = run_state
 
@@ -232,6 +238,8 @@ def start_test_suite_run(suite_file: str, app_state: AppState) -> dict:
         "run_id": run_id,
         "suite_name": suite.name,
         "total_tests": len(suite.test_paths),
+        "source_file": suite_file,
+        "run_type": "suite",
     })
 
     loop = app_state.loop

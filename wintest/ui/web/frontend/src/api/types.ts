@@ -96,6 +96,8 @@ export interface RunStatus {
   current_step: number | null;
   total_steps: number | null;
   step_results: StepResultData[];
+  source_file: string | null;
+  run_type: string | null;
 }
 
 export interface StepResultData {
@@ -128,6 +130,8 @@ export interface WsMessage {
   status?: string;
   current_step?: number;
   step_results?: StepResultData[];
+  source_file?: string;
+  run_type?: string;
 }
 
 export interface TestSuite {

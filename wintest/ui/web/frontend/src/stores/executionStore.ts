@@ -7,6 +7,8 @@ interface ExecutionState {
   status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
   runId: string | null;
   testName: string | null;
+  sourceFile: string | null;
+  runType: string | null;
   currentStep: number;
   totalSteps: number;
   currentLabel: string | null;
@@ -16,6 +18,7 @@ interface ExecutionState {
 
   handleWsMessage: (msg: WsMessage) => void;
   startRun: (taskFile: string) => Promise<void>;
+  startSuiteRun: (suiteFile: string) => Promise<void>;
   cancelRun: () => Promise<void>;
   loadModel: () => Promise<void>;
   fetchStatus: () => Promise<void>;
@@ -26,6 +29,8 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
   status: 'idle',
   runId: null,
   testName: null,
+  sourceFile: null,
+  runType: null,
   currentStep: 0,
   totalSteps: 0,
   currentLabel: null,
@@ -40,7 +45,22 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
           status: 'running',
           runId: msg.run_id ?? null,
           testName: msg.test_name ?? null,
+          sourceFile: msg.source_file ?? null,
+          runType: msg.run_type ?? 'test',
           totalSteps: msg.total_steps ?? 0,
+          currentStep: 0,
+          stepResults: [],
+          error: null,
+        });
+        break;
+      case 'test_suite_started':
+        set({
+          status: 'running',
+          runId: msg.run_id ?? null,
+          testName: msg.test_name ?? null,
+          sourceFile: msg.source_file ?? null,
+          runType: msg.run_type ?? 'suite',
+          totalSteps: 0,
           currentStep: 0,
           stepResults: [],
           error: null,
@@ -98,6 +118,8 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
           status: (msg.status as ExecutionState['status']) ?? 'idle',
           runId: msg.run_id ?? null,
           testName: msg.test_name ?? null,
+          sourceFile: msg.source_file ?? null,
+          runType: msg.run_type ?? null,
           currentStep: msg.current_step ?? 0,
           totalSteps: msg.total_steps ?? 0,
           stepResults: msg.step_results ?? [],
@@ -114,6 +136,22 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
         runId: res.run_id,
         testName: res.test_name,
         totalSteps: res.total_steps,
+      });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? i18next.t('errors.startRunFailed');
+      set({ status: 'failed', error: typeof msg === 'string' ? msg : i18next.t('errors.runInProgress') });
+    }
+  },
+
+  startSuiteRun: async (suiteFile: string) => {
+    set({ status: 'running', stepResults: [], error: null });
+    try {
+      const res = await executionApi.runTestSuite(suiteFile);
+      set({
+        runId: res.run_id,
+        testName: `Suite: ${res.suite_name}`,
+        sourceFile: suiteFile,
+        runType: 'suite',
       });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? i18next.t('errors.startRunFailed');
@@ -140,6 +178,8 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
       status: (status.status as ExecutionState['status']),
       runId: status.run_id,
       testName: status.test_name,
+      sourceFile: status.source_file ?? null,
+      runType: status.run_type ?? null,
       currentStep: status.current_step ?? 0,
       totalSteps: status.total_steps ?? 0,
     });
@@ -151,6 +191,8 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
     status: 'idle',
     runId: null,
     testName: null,
+    sourceFile: null,
+    runType: null,
     currentStep: 0,
     totalSteps: 0,
     currentLabel: null,

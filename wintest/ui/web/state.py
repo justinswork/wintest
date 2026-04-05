@@ -21,6 +21,8 @@ class RunState:
     total_steps: int = 0
     step_results: list = field(default_factory=list)
     cancel_event: threading.Event = field(default_factory=threading.Event)
+    source_file: str | None = None
+    run_type: str = "test"  # "test" or "suite"
 
 
 class AppState:

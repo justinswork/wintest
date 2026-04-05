@@ -67,6 +67,8 @@ class RunStatus(BaseModel):
     current_step: int | None = None
     total_steps: int | None = None
     step_results: list[StepResultModel] = []
+    source_file: str | None = None
+    run_type: str | None = None
 
 
 class ModelStatus(BaseModel):
