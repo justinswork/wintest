@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { FileDown } from 'lucide-react';
 import { reportApi } from '../api/client';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -39,6 +40,14 @@ export function ReportViewer() {
         <h2>{report.test_name}</h2>
         <div className="header-actions">
           <StatusBadge passed={report.passed} />
+          <a
+            className="btn btn-secondary btn-sm"
+            href={`/api/reports/${reportId}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FileDown size={14} />{t('reportViewer.exportPdf')}
+          </a>
           <button className="btn btn-danger btn-sm" onClick={handleDelete}>{t('common.delete')}</button>
         </div>
       </div>

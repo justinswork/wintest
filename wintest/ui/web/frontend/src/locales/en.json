@@ -122,6 +122,7 @@
   "reportViewer.coordinates": "Coordinates:",
   "reportViewer.modelResponse": "Model response:",
   "reportViewer.stepScreenshot": "Step {{num}} screenshot",
+  "reportViewer.exportPdf": "Export PDF",
   "reportViewer.loading": "Loading report...",
 
   "settings.title": "Settings",

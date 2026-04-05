@@ -34,6 +34,20 @@ async def delete_report(report_id: str):
         raise HTTPException(status_code=404, detail=f"Report not found: {report_id}")
 
 
+@router.get("/{report_id}/pdf")
+async def export_pdf(report_id: str):
+    """Export a report as a PDF file."""
+    try:
+        path = report_service.export_pdf(report_id)
+        return FileResponse(
+            str(path),
+            media_type="application/pdf",
+            filename=f"{report_id}.pdf",
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Report not found: {report_id}")
+
+
 @router.get("/{report_id}/screenshots/{filename}")
 async def get_screenshot(report_id: str, filename: str):
     """Serve a screenshot image."""

@@ -1,7 +1,13 @@
 # Future Improvements
 
-## Export Reports to PDF
-Add the ability to export test reports as PDF files. This would make it easy to share results with stakeholders or archive them outside the application.
+## Suite Reports & PDF Export
+Generate a combined report for test suite runs that includes a summary page (suite name, total tests, pass/fail counts) followed by the full report for each individual test. Export the combined suite report as a single PDF. Currently each test in a suite generates its own independent report with no suite-level aggregation.
+
+## Suite Execution Viewer
+The execution viewer currently shows no progress during suite runs — it only handles single-test step messages. Add handling for `test_suite_test_started` and `test_suite_test_completed` WebSocket messages to show per-test progress during a suite run (e.g. "Test 2/3: Notepad Basic Test — PASSED").
+
+## Report Template Customization
+Allow users to customize the PDF report template with their own branding — logo, company name, colors, header/footer text. Could be a config file or a custom Jinja2 template that overrides the default.
 
 ## User-Defined Custom Steps
 Allow users to define their own custom step types (composite steps or macros) that combine multiple built-in steps into a reusable action. This would reduce repetition across tests.
