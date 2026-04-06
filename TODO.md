@@ -11,8 +11,26 @@ Extend the variable system to capture values from step results at runtime — e.
 ## Suite Reports & PDF Export — Impact: 7 | Difficulty: 5
 Generate a combined report for test suite runs that includes a summary page (suite name, total tests, pass/fail counts) followed by the full report for each individual test. Export the combined suite report as a single PDF. Currently each test in a suite generates its own independent report with no suite-level aggregation.
 
-## Test Cleanup & Artifact Management — Impact: 7 | Difficulty: 4
-Ensure tests clean up after themselves. Add a `cleanup` section to test YAML that runs after the test completes (pass or fail) — e.g. delete temp files, close extra windows, restore settings. Add a `delete_files` option that automatically removes any files created during the test run (tracked via filesystem monitoring or explicit paths). Consider a `workspace` directory per test run where all artifacts are collected and can be easily wiped.
+## Failure Handling & Cleanup Sections — Impact: 8 | Difficulty: 5
+Add two optional step sections to test YAML that run after the main steps:
+- **`on_failure`** — steps that only run when a step fails. Useful for error recovery, dismissing dialogs, capturing diagnostic info, or taking extra screenshots.
+- **`cleanup`** — steps that always run regardless of pass/fail. Useful for closing applications, deleting temp files, restoring settings, and ensuring a clean state for the next test.
+
+```yaml
+steps:
+  - action: click
+    target: "Save button"
+
+on_failure:
+  - action: click
+    target: "Cancel button"
+
+cleanup:
+  - action: press_key
+    key: "alt+f4"
+```
+
+Avoids programming terminology (try/catch/finally) while giving users the same control. The runner would execute: steps -> on_failure (if any step failed) -> cleanup (always). Could also add a `delete_files` option and per-test `workspace` directory for artifact management.
 
 ## Notification Hooks — Impact: 7 | Difficulty: 4
 Send results to Slack, email, or a webhook on test completion or failure. Webhook is the simplest starting point; Slack/email integration adds scope.
