@@ -59,8 +59,8 @@ Allow the wintest web server to be accessed from other machines on the network s
 - **Concurrency UX** — clear feedback when a run is already in progress
 - Ties into Environment Isolation
 
-## Test Recorder — Impact: 9 | Difficulty: 9
-Record clicks and keystrokes on the desktop and auto-generate a test YAML from the recording. Should capture mouse clicks (with screen region descriptions), keyboard input, and timing between actions. Ideally runs as an overlay or background listener that the user can start/stop from the web UI.
+## Vision Model Tiling (Dynamic Resolution) — Impact: 10 | Difficulty: 6
+The vision model currently resizes the entire screenshot (e.g. 2560x1440) down to 448x448, losing critical detail for small UI elements like menu text. InternVL2 supports dynamic resolution / tile mode where the image is split into 448x448 tiles that are processed together, preserving detail. Implementing this would dramatically improve click accuracy for small elements and dense UIs. This is the single biggest improvement that can be made to test reliability.
 
 ## Retry Failed Tests in Suites — Impact: 6 | Difficulty: 3
 Re-run only the failed tests from a completed suite run, instead of re-running the entire suite.
