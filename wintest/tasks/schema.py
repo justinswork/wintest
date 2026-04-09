@@ -22,6 +22,8 @@ class Step:
     variable_value: Optional[str] = None
     loop_target: Optional[int] = None
     repeat: int = 0
+    click_x: Optional[float] = None
+    click_y: Optional[float] = None
 
 
 @dataclass

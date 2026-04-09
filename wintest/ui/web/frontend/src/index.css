@@ -1315,6 +1315,19 @@ select.input {
   display: block;
 }
 
+.builder-pick-banner {
+  padding: 0.5rem 0.75rem;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 0.85rem;
+  text-align: center;
+  border-bottom: 2px solid #3b82f6;
+}
+
+.screenshot-pickable {
+  cursor: crosshair;
+}
+
 .builder-confirm-bar {
   display: flex;
   align-items: center;
@@ -1362,6 +1375,12 @@ select.input {
   color: #ef4444;
 }
 
+.builder-detail-input {
+  flex: 1;
+  font-size: 0.82rem;
+  padding: 0.25rem 0.4rem;
+}
+
 .builder-model-response {
   font-size: 0.75rem;
   background: var(--bg-surface);
@@ -1378,6 +1397,54 @@ select.input {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+}
+
+.builder-run-split {
+  display: flex;
+  position: relative;
+}
+
+.builder-run-split .btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.builder-run-toggle {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 0.4rem 0.3rem !important;
+}
+
+.builder-run-dropdown {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+  margin-bottom: 4px;
+  min-width: 180px;
+  z-index: 10;
+}
+
+.builder-run-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.builder-run-dropdown-item:hover {
+  background: var(--bg-surface);
 }
 
 .builder-desc-input {

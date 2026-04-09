@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Play, Trash2, Save, Square, Camera, FolderOpen } from 'lucide-react';
+import { Play, Trash2, Save, Square, Camera, FolderOpen, Check, ChevronDown } from 'lucide-react';
 import { builderApi, fileApi } from '../api/client';
 import { useTestStore } from '../stores/testStore';
 import { showToast } from '../components/common/Toast';
@@ -31,7 +31,11 @@ export function TestBuilder() {
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
   const [lastStepTime, setLastStepTime] = useState<number | null>(null);
   const [pendingStep, setPendingStep] = useState<{ step: BuilderStep; stepData: Record<string, unknown> } | null>(null);
+  const [pickMode, setPickMode] = useState(false);
+  const [showRunMenu, setShowRunMenu] = useState(false);
+  const runMenuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const screenshotRef = useRef<HTMLImageElement>(null);
   const [action, setAction] = useState('launch_application');
   const [target, setTarget] = useState('');
   const [text, setText] = useState('');
@@ -88,6 +92,63 @@ export function TestBuilder() {
       setLastStepTime(null);
     } catch {
       showToast(t('builder.captureFailed'), 'error');
+    }
+  };
+
+  const handleStartPick = async () => {
+    // Capture a fresh screenshot for the user to click on
+    try {
+      const res = await builderApi.screenshot();
+      setScreenshot(res.screenshot_base64);
+      setSelectedStep(null);
+      setPickMode(true);
+    } catch {
+      showToast(t('builder.captureFailed'), 'error');
+    }
+  };
+
+  const handleScreenshotClick = async (e: React.MouseEvent<HTMLImageElement>) => {
+    if (!pickMode || executing) return;
+
+    const img = screenshotRef.current;
+    if (!img) return;
+
+    const rect = img.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left) / rect.width;
+    const clickY = (e.clientY - rect.top) / rect.height;
+
+    setPickMode(false);
+    setExecuting(true);
+
+    try {
+      const stepData: Record<string, unknown> = {
+        action,
+        description: description || `${action} at (${Math.round(clickX * 100)}%, ${Math.round(clickY * 100)}%)`,
+        click_x: clickX,
+        click_y: clickY,
+      };
+      const result = await builderApi.step(stepData);
+      const builderStep: BuilderStep = {
+        step: buildStepRecord(stepData),
+        passed: result.passed,
+        error: result.error,
+        coordinates: result.coordinates ?? null,
+        model_response: result.model_response ?? null,
+        duration_seconds: result.duration_seconds ?? 0,
+        screenshot_base64: result.screenshot_base64,
+      };
+
+      // Show result screenshot and ask for confirmation
+      setPendingStep({ step: builderStep, stepData });
+      if (result.screenshot_base64) {
+        setScreenshot(result.screenshot_base64);
+        setSelectedStep(null);
+      }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Step failed';
+      showToast(msg, 'error');
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -148,9 +209,39 @@ export function TestBuilder() {
   };
 
   const retryPendingStep = () => {
-    // Keep the current action/target so user can adjust and retry
+    const wasCoordinatePick = pendingStep?.step.step.click_x != null;
     setPendingStep(null);
-    setScreenshot(null);
+    if (wasCoordinatePick) {
+      // Go back to pick mode with the pre-click screenshot
+      handleStartPick();
+    } else {
+      setScreenshot(null);
+    }
+  };
+
+  const handleSaveStep = () => {
+    const stepData = buildStepFromForm();
+    const builderStep: BuilderStep = {
+      step: buildStepRecord(stepData),
+      passed: true,
+      error: null,
+      coordinates: null,
+      model_response: null,
+      duration_seconds: 0,
+      screenshot_base64: null,
+    };
+    setSteps(prev => [...prev, builderStep]);
+    setSelectedStep(steps.length);
+
+    // Reset for next step
+    setAction('click');
+    setTarget('');
+    setText('');
+    setKey('');
+    setKeys('');
+    setAppPath('');
+    setAppTitle('');
+    setDescription('');
   };
 
   const handleExecute = async () => {
@@ -204,10 +295,25 @@ export function TestBuilder() {
     }
   };
 
+  useEffect(() => {
+    if (!showRunMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (runMenuRef.current && !runMenuRef.current.contains(e.target as Node)) {
+        setShowRunMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showRunMenu]);
+
   const handleRemoveStep = (index: number) => {
     setSteps(prev => prev.filter((_, i) => i !== index));
     if (selectedStep === index) setSelectedStep(null);
     else if (selectedStep !== null && selectedStep > index) setSelectedStep(selectedStep - 1);
+  };
+
+  const handleUpdateStep = (index: number, updated: BuilderStep) => {
+    setSteps(prev => prev.map((s, i) => i === index ? updated : s));
   };
 
   const handleSaveAsTest = async () => {
@@ -244,6 +350,27 @@ export function TestBuilder() {
       case 'click':
       case 'double_click':
       case 'right_click':
+        return (
+          <>
+            <button
+              className="btn btn-secondary"
+              onClick={handleStartPick}
+              disabled={executing}
+            >
+              {t('builder.pickOnScreenshot')}
+            </button>
+            <span className="text-muted">{t('builder.or')}</span>
+            <input
+              ref={inputRef}
+              className="input flex-1"
+              placeholder={t('builder.targetPlaceholder')}
+              value={target}
+              onChange={e => setTarget(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && target) handleExecute(); }}
+              disabled={executing}
+            />
+          </>
+        );
       case 'verify':
         return (
           <input
@@ -428,11 +555,18 @@ export function TestBuilder() {
 
           {/* Screenshot */}
           <div className="builder-screenshot">
+            {pickMode && (
+              <div className="builder-pick-banner">
+                {t('builder.pickInstruction')}
+              </div>
+            )}
             {displayedScreenshot ? (
               <img
+                ref={screenshotRef}
                 src={`data:image/png;base64,${displayedScreenshot}`}
                 alt="Current screen"
-                className="screenshot-img"
+                className={`screenshot-img${pickMode ? ' screenshot-pickable' : ''}`}
+                onClick={handleScreenshotClick}
               />
             ) : (
               <div className="screenshot-placeholder">
@@ -443,7 +577,7 @@ export function TestBuilder() {
             {pendingStep && (
               <div className="builder-confirm-bar">
                 <div className="builder-confirm-info">
-                  <span>{t('builder.confirmPrompt')}</span>
+                  <span>{pendingStep.step.step.click_x != null ? t('builder.confirmClickPrompt') : t('builder.confirmPrompt')}</span>
                   {pendingStep.step.coordinates && (
                     <span className="text-muted">
                       Clicked at ({pendingStep.step.coordinates.join(', ')})
@@ -462,7 +596,7 @@ export function TestBuilder() {
             )}
 
             {!pendingStep && selectedStep !== null && steps[selectedStep] && (
-              <StepDetail step={steps[selectedStep]} index={selectedStep} />
+              <StepDetail step={steps[selectedStep]} index={selectedStep} onChange={handleUpdateStep} />
             )}
           </div>
         </div>
@@ -497,54 +631,165 @@ export function TestBuilder() {
             onChange={e => setDescription(e.target.value)}
             disabled={executing}
           />
-          <button className="btn btn-primary" onClick={handleExecute} disabled={executing}>
-            <Play size={16} />{executing ? t('builder.executing') : t('builder.execute')}
-          </button>
+          <div className="builder-run-split" ref={runMenuRef}>
+            <button className="btn btn-primary" onClick={handleExecute} disabled={executing}>
+              <Play size={16} />{executing ? t('builder.executing') : t('builder.addAndRun')}
+            </button>
+            <button
+              className="btn btn-primary builder-run-toggle"
+              onClick={() => setShowRunMenu(!showRunMenu)}
+              disabled={executing}
+            >
+              <ChevronDown size={14} />
+            </button>
+            {showRunMenu && (
+              <div className="builder-run-dropdown">
+                <button className="builder-run-dropdown-item" onClick={() => { handleSaveStep(); setShowRunMenu(false); }}>
+                  <Check size={14} />{t('builder.addOnly')}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function StepDetail({ step, index }: { step: BuilderStep; index: number }) {
+function StepDetail({ step, index, onChange }: {
+  step: BuilderStep;
+  index: number;
+  onChange: (index: number, updated: BuilderStep) => void;
+}) {
+  const { t } = useTranslation();
+  const s = step.step;
+
+  const updateField = (field: string, value: unknown) => {
+    onChange(index, {
+      ...step,
+      step: { ...s, [field]: value },
+    });
+  };
+
   return (
     <div className="builder-step-detail">
       <div className="builder-detail-header">
-        <strong>#{index + 1} {step.step.action}</strong>
-        <span className={`badge-sm ${step.passed ? 'badge-pass' : 'badge-fail'}`}>
-          {step.passed ? 'PASS' : 'FAIL'}
-        </span>
-        <span className="text-muted">{step.duration_seconds.toFixed(1)}s</span>
+        <strong>#{index + 1} {s.action}</strong>
+        {step.duration_seconds > 0 && (
+          <span className="text-muted">{step.duration_seconds.toFixed(1)}s</span>
+        )}
       </div>
-      {step.step.target && (
+
+      <div className="builder-detail-row">
+        <span className="builder-detail-label">{t('builder.detail.description')}</span>
+        <input
+          className="input builder-detail-input"
+          value={s.description}
+          onChange={e => updateField('description', e.target.value)}
+          placeholder={t('builder.descriptionPlaceholder')}
+        />
+      </div>
+
+      {(s.action === 'click' || s.action === 'double_click' || s.action === 'right_click' || s.action === 'verify') && (
         <div className="builder-detail-row">
-          <span className="builder-detail-label">Target:</span> {step.step.target}
+          <span className="builder-detail-label">{t('builder.detail.target')}</span>
+          <input
+            className="input builder-detail-input"
+            value={s.target ?? ''}
+            onChange={e => updateField('target', e.target.value || null)}
+            placeholder="Target element"
+          />
         </div>
       )}
-      {step.step.text && (
+
+      {s.action === 'type' && (
         <div className="builder-detail-row">
-          <span className="builder-detail-label">Text:</span> {step.step.text}
+          <span className="builder-detail-label">{t('builder.detail.text')}</span>
+          <input
+            className="input builder-detail-input"
+            value={s.text ?? ''}
+            onChange={e => updateField('text', e.target.value || null)}
+          />
         </div>
       )}
-      {step.step.app_path && (
+
+      {s.action === 'press_key' && (
         <div className="builder-detail-row">
-          <span className="builder-detail-label">App:</span> {step.step.app_path}
+          <span className="builder-detail-label">{t('builder.detail.key')}</span>
+          <input
+            className="input builder-detail-input"
+            value={s.key ?? ''}
+            onChange={e => updateField('key', e.target.value || null)}
+          />
         </div>
       )}
+
+      {s.action === 'hotkey' && (
+        <div className="builder-detail-row">
+          <span className="builder-detail-label">{t('builder.detail.keys')}</span>
+          <input
+            className="input builder-detail-input"
+            value={s.keys?.join(', ') ?? ''}
+            onChange={e => updateField('keys', e.target.value.split(',').map(k => k.trim()).filter(Boolean))}
+          />
+        </div>
+      )}
+
+      {s.action === 'scroll' && (
+        <div className="builder-detail-row">
+          <span className="builder-detail-label">{t('builder.detail.scrollAmount')}</span>
+          <input
+            className="input builder-detail-input"
+            type="number"
+            value={s.scroll_amount}
+            onChange={e => updateField('scroll_amount', parseInt(e.target.value) || 0)}
+            style={{ width: 80 }}
+          />
+        </div>
+      )}
+
+      {(s.action === 'wait' || s.action === 'launch_application') && (
+        <div className="builder-detail-row">
+          <span className="builder-detail-label">{t('builder.detail.waitSeconds')}</span>
+          <input
+            className="input builder-detail-input"
+            type="number"
+            step="0.5"
+            value={s.wait_seconds}
+            onChange={e => updateField('wait_seconds', parseFloat(e.target.value) || 0)}
+            style={{ width: 80 }}
+          />
+        </div>
+      )}
+
+      {s.action === 'launch_application' && (
+        <div className="builder-detail-row">
+          <span className="builder-detail-label">{t('builder.detail.appPath')}</span>
+          <input
+            className="input builder-detail-input"
+            value={s.app_path ?? ''}
+            onChange={e => updateField('app_path', e.target.value || null)}
+          />
+        </div>
+      )}
+
+      {s.click_x != null && s.click_y != null && (
+        <div className="builder-detail-row">
+          <span className="builder-detail-label">{t('builder.detail.clickCoords')}</span>
+          <span className="text-muted">({Math.round(s.click_x * 100)}%, {Math.round(s.click_y * 100)}%)</span>
+        </div>
+      )}
+
       {step.coordinates && (
         <div className="builder-detail-row">
-          <span className="builder-detail-label">Clicked at:</span> ({step.coordinates.join(', ')})
+          <span className="builder-detail-label">{t('builder.detail.pixelCoords')}</span>
+          <span className="text-muted">({step.coordinates.join(', ')})</span>
         </div>
       )}
+
       {step.error && (
         <div className="builder-detail-row builder-step-error">
-          <span className="builder-detail-label">Error:</span> {step.error}
-        </div>
-      )}
-      {step.model_response && (
-        <div className="builder-detail-row">
-          <span className="builder-detail-label">Model:</span>
-          <code className="builder-model-response">{step.model_response}</code>
+          <span className="builder-detail-label">{t('builder.detail.error')}</span> {step.error}
         </div>
       )}
     </div>

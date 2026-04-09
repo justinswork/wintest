@@ -79,6 +79,29 @@ class Agent:
             )
         return defn.execute(step, self)
 
+    def click_at(self, step: Step, click_type: str = "click") -> StepResult:
+        """Click at explicit coordinates (click_x, click_y on 0-1 scale)."""
+        screenshot = self.screen.capture()
+        w, h = screenshot.size
+        px = int(step.click_x * w)
+        py = int(step.click_y * h)
+
+        screenshot_path = self._save_screenshot(screenshot, click_coords=(px, py))
+
+        if click_type == "click":
+            self.actions.click(px, py)
+        elif click_type == "double_click":
+            self.actions.click(px, py, clicks=2)
+        elif click_type == "right_click":
+            self.actions.click(px, py, button="right")
+
+        return StepResult(
+            step=step,
+            passed=True,
+            coordinates=(px, py),
+            screenshot_path=screenshot_path,
+        )
+
     def find_and_click(self, step: Step, click_type: str = "click") -> StepResult:
         """Find an element on screen and click it, with retries."""
         for attempt in range(step.retry_attempts):

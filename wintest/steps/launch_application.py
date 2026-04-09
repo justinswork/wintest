@@ -34,10 +34,12 @@ def execute(step, runner_ctx):
     # Store on runner context so runner can focus/close it
     runner_ctx["app_manager"] = app_manager
 
-    if effective.recovery.enabled:
+    agent = runner_ctx.get("agent")
+    actions = runner_ctx.get("actions") or (agent.actions if agent else None)
+    if effective.recovery.enabled and actions:
         runner_ctx["recovery"] = RecoveryStrategy(
             app_manager=app_manager,
-            actions=runner_ctx["agent"].actions,
+            actions=actions,
             max_attempts=effective.recovery.max_recovery_attempts,
             dismiss_keys=effective.recovery.dismiss_dialog_keys,
             recovery_delay=effective.recovery.recovery_delay,

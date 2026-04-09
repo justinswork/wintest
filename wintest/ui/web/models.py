@@ -22,6 +22,8 @@ class StepModel(BaseModel):
     variable_value: str | None = None
     loop_target: int | None = None
     repeat: int = 0
+    click_x: float | None = None
+    click_y: float | None = None
 
 
 class TestModel(BaseModel):

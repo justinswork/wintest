@@ -24,6 +24,8 @@ class BuilderStepRequest(BaseModel):
     app_path: str | None = None
     app_title: str | None = None
     expected: bool = True
+    click_x: float | None = None
+    click_y: float | None = None
 
 
 @router.post("/start")
@@ -59,6 +61,8 @@ async def execute_step(request: BuilderStepRequest):
         app_path=request.app_path,
         app_title=request.app_title,
         expected=request.expected,
+        click_x=request.click_x,
+        click_y=request.click_y,
     )
 
     result = execution_service.execute_builder_step(step, _builder)
@@ -90,7 +94,7 @@ async def get_screenshot():
     import io
 
     try:
-        screenshot = _builder.agent.screen.capture()
+        screenshot = _builder.screen.capture()
         buf = io.BytesIO()
         screenshot.save(buf, format="PNG")
         b64 = base64.b64encode(buf.getvalue()).decode()

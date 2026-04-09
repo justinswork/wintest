@@ -17,6 +17,8 @@ export interface Step {
   variable_value: string | null;
   loop_target: number | null;
   repeat: number;
+  click_x: number | null;
+  click_y: number | null;
 }
 
 export interface Test {
@@ -181,5 +183,7 @@ export function newStep(): Step {
     variable_value: null,
     loop_target: null,
     repeat: 0,
+    click_x: null,
+    click_y: null,
   };
 }

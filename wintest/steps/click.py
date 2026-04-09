@@ -1,22 +1,28 @@
-"""Click step -- click on a UI element identified by the AI model."""
+"""Click step -- click on a UI element identified by the AI model or at explicit coordinates."""
 
 from ._base import StepDefinition, FieldDef
 
 
 def validate(step, step_num):
-    if not step.target:
-        return [f"Step {step_num}: 'click' requires a 'target' field"]
+    if not step.target and step.click_x is None:
+        return [f"Step {step_num}: 'click' requires a 'target' field or click_x/click_y coordinates"]
     return []
 
 
 def execute(step, agent):
+    if step.click_x is not None and step.click_y is not None:
+        return agent.click_at(step, click_type="click")
     return agent.find_and_click(step, click_type="click")
 
 
 definition = StepDefinition(
     name="click",
-    description="Click on a UI element identified by the AI model",
-    fields=[FieldDef("target", "string", required=True)],
+    description="Click on a UI element identified by the AI model or at explicit coordinates",
+    fields=[
+        FieldDef("target", "string"),
+        FieldDef("click_x", "number"),
+        FieldDef("click_y", "number"),
+    ],
     validate=validate,
     execute=execute,
 )

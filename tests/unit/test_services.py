@@ -160,10 +160,13 @@ class TestTestServiceStepTypes:
         assert "type" in names
         assert "verify" in names
 
-    def test_click_required_fields(self):
+    def test_click_fields(self):
         types = test_service.get_step_types()
         click_info = next(t for t in types if t.name == "click")
-        assert "target" in click_info.required_fields
+        field_names = [f.name for f in click_info.fields]
+        assert "target" in field_names
+        assert "click_x" in field_names
+        assert "click_y" in field_names
 
 
 # --- test_suite_service ---

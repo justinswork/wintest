@@ -62,6 +62,8 @@ def load_test(filepath: str, settings=None) -> TestDefinition:
             variable_value=step_data.get("variable_value"),
             loop_target=step_data.get("loop_target"),
             repeat=step_data.get("repeat", 0),
+            click_x=step_data.get("click_x"),
+            click_y=step_data.get("click_y"),
         ))
 
     return TestDefinition(

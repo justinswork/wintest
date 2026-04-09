@@ -395,11 +395,23 @@ def _run_test_suite(suite_file: str, run_id: str, app_state: AppState, loop: asy
 class BuilderState:
     """Holds state for the interactive test builder session."""
 
-    def __init__(self, agent: Agent, settings):
-        self.agent = agent
-        self.settings = settings
+    def __init__(self, app_state: AppState):
+        self.app_state = app_state
+        self.settings = app_state.settings
+        self.screen = ScreenCapture(coordinate_scale=app_state.settings.action.coordinate_scale)
+        self.actions = ActionExecutor(action_settings=app_state.settings.action)
+        self.agent: Agent | None = None
         self.app_manager: ApplicationManager | None = None
         self.recovery: RecoveryStrategy | None = None
+
+    def ensure_agent(self) -> Agent:
+        """Create the agent, loading the vision model if needed."""
+        if self.agent is not None:
+            return self.agent
+        vision = _ensure_model(self.app_state)
+        self.agent = Agent(vision, self.screen, self.actions)
+        self.agent.report_dir = None
+        return self.agent
 
 
 def _ensure_model(app_state: AppState) -> VisionModel:
@@ -414,13 +426,18 @@ def _ensure_model(app_state: AppState) -> VisionModel:
 
 
 def start_builder(app_state: AppState) -> BuilderState:
-    """Initialize a builder session."""
-    vision = _ensure_model(app_state)
-    screen = ScreenCapture(coordinate_scale=app_state.settings.action.coordinate_scale)
-    actions = ActionExecutor(action_settings=app_state.settings.action)
-    agent = Agent(vision, screen, actions)
-    agent.report_dir = None
-    return BuilderState(agent, app_state.settings)
+    """Initialize a builder session (does not load the AI model)."""
+    return BuilderState(app_state)
+
+
+def _needs_vision(step: Step) -> bool:
+    """Check if a step requires the AI vision model."""
+    if step.action in ("click", "double_click", "right_click", "verify"):
+        # Coordinate-based clicks don't need vision
+        if step.click_x is not None and step.click_y is not None:
+            return False
+        return True
+    return False
 
 
 def execute_builder_step(step: Step, builder: BuilderState) -> dict:
@@ -433,11 +450,18 @@ def execute_builder_step(step: Step, builder: BuilderState) -> dict:
             "screenshot_base64": None,
         }
 
+    # Only load the AI model if this step actually needs it
+    if _needs_vision(step):
+        agent = builder.ensure_agent()
+    else:
+        agent = builder.agent  # may be None, but non-vision steps won't use it
+
     # Handle runner-level steps
     if defn.is_runner_step:
         runner_ctx = {
             "effective_settings": builder.settings,
-            "agent": builder.agent,
+            "agent": agent,
+            "actions": builder.actions,
             "app_manager": builder.app_manager,
             "recovery": builder.recovery,
             "variables": None,
@@ -453,15 +477,25 @@ def execute_builder_step(step: Step, builder: BuilderState) -> dict:
     else:
         if builder.app_manager:
             builder.app_manager.focus()
-        step_timeout = step.timeout or builder.settings.timeout.step_timeout
-        result = builder.agent.execute_step(step, step_timeout=step_timeout)
+
+        # Coordinate-based clicks can use a lightweight agent without vision
+        if step.click_x is not None and step.click_y is not None:
+            if agent is None:
+                # Create a minimal agent with no vision model for coordinate clicks
+                agent = Agent(None, builder.screen, builder.actions)
+                agent.report_dir = None
+            result = agent.click_at(step, click_type=step.action if step.action in ("double_click", "right_click") else "click")
+        else:
+            agent = builder.ensure_agent()
+            step_timeout = step.timeout or builder.settings.timeout.step_timeout
+            result = agent.execute_step(step, step_timeout=step_timeout)
 
     # Capture a screenshot after execution, with click annotation if applicable
     screenshot_b64 = None
     try:
         import io
         from PIL import ImageDraw
-        screenshot = builder.agent.screen.capture()
+        screenshot = builder.screen.capture()
 
         # Draw a prominent click marker if we have coordinates
         if result.coordinates:
