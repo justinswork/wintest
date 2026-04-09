@@ -269,6 +269,8 @@
   "builder.detail.error": "Error",
   "builder.descriptionPlaceholder": "Description (optional)",
 
+  "appPath.browse": "Browse for application",
+
   "errors.unknownError": "Unknown error",
   "errors.startRunFailed": "Failed to start run",
   "errors.runInProgress": "A run is already in progress"

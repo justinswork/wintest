@@ -41,6 +41,12 @@ export const fileApi = {
   pickExecutable: () => api.post<{ path: string }>('/files/pick-executable').then(r => r.data.path),
 };
 
+export const savedAppsApi = {
+  list: () => api.get<string[]>('/saved-apps').then(r => r.data),
+  add: (path: string) => api.post('/saved-apps', { path }).then(r => r.data),
+  remove: (path: string) => api.delete('/saved-apps', { data: { path } }).then(r => r.data),
+};
+
 export const settingsApi = {
   getModel: () => api.get('/settings/model').then(r => r.data),
   setModel: (model_path: string) => api.put('/settings/model', { model_path }).then(r => r.data),

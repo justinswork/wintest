@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import state as state_module
 from .state import AppState
-from .routes import tests, test_suites, execution, reports, ws, builder, files
+from .routes import tests, test_suites, execution, reports, ws, builder, files, saved_apps
 from .routes import settings as settings_routes
 
 logger = logging.getLogger(__name__)
@@ -52,6 +52,7 @@ def create_app(settings) -> FastAPI:
     app.include_router(builder.router, prefix="/api/builder", tags=["builder"])
     app.include_router(files.router, prefix="/api/files", tags=["files"])
     app.include_router(settings_routes.router, prefix="/api/settings", tags=["settings"])
+    app.include_router(saved_apps.router, prefix="/api/saved-apps", tags=["saved-apps"])
     app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
     app.add_api_websocket_route("/api/ws/execution", ws.execution_ws)
 

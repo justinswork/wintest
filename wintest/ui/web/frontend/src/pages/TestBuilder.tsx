@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Play, Trash2, Save, Square, Camera, FolderOpen, Check, ChevronDown } from 'lucide-react';
-import { builderApi, fileApi } from '../api/client';
+import { Play, Trash2, Save, Square, Camera, Check, ChevronDown } from 'lucide-react';
+import { builderApi } from '../api/client';
+import { AppPathInput } from '../components/common/AppPathInput';
 import { useTestStore } from '../stores/testStore';
 import { showToast } from '../components/common/Toast';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -445,40 +446,12 @@ export function TestBuilder() {
       case 'launch_application':
         return (
           <>
-            <input
-              ref={inputRef}
-              className="input flex-1"
-              placeholder={t('builder.appPathPlaceholder')}
+            <AppPathInput
               value={appPath}
-              onChange={e => setAppPath(e.target.value)}
+              onChange={setAppPath}
+              placeholder={t('builder.appPathPlaceholder')}
+              disabled={executing}
               onKeyDown={e => { if (e.key === 'Enter' && appPath) handleExecute(); }}
-              disabled={executing}
-            />
-            <button
-              className="btn-icon"
-              onClick={async () => { try { setAppPath(await fileApi.pickExecutable()); } catch { /* cancelled */ } }}
-              title={t('builder.browse')}
-              disabled={executing}
-            >
-              <FolderOpen size={16} />
-            </button>
-            <input
-              className="input"
-              placeholder={t('builder.appTitlePlaceholder')}
-              value={appTitle}
-              onChange={e => setAppTitle(e.target.value)}
-              style={{ width: 150 }}
-              disabled={executing}
-            />
-            <input
-              className="input"
-              type="number"
-              step="0.5"
-              value={waitSeconds}
-              onChange={e => setWaitSeconds(parseFloat(e.target.value) || 0)}
-              style={{ width: 80 }}
-              title={t('builder.waitAfterLaunch')}
-              disabled={executing}
             />
           </>
         );

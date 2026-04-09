@@ -1399,6 +1399,58 @@ select.input {
   border-radius: var(--radius-lg);
 }
 
+/* ── App path combo box ──────────────────────────────────── */
+.app-path-input {
+  position: relative;
+  flex: 1;
+}
+
+.app-path-input-row {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.app-path-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.app-path-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-family: monospace;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-path-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.app-path-dropdown-item:hover {
+  background: var(--bg-surface);
+  color: var(--primary);
+}
+
 .builder-run-split {
   display: flex;
   position: relative;
