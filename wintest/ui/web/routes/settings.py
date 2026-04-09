@@ -14,6 +14,18 @@ AVAILABLE_MODELS = [
         "description": "GUI-specialized click grounding model (recommended)",
         "size": "~4 GB",
     },
+    {
+        "id": "Qwen/Qwen2.5-VL-7B-Instruct",
+        "name": "Qwen2.5-VL-7B",
+        "description": "Larger general-purpose vision model with grounding support",
+        "size": "~8 GB (4-bit)",
+    },
+    {
+        "id": "Qwen/Qwen2.5-VL-3B-Instruct",
+        "name": "Qwen2.5-VL-3B",
+        "description": "Mid-size general-purpose vision model with grounding support",
+        "size": "~4 GB (4-bit)",
+    },
 ]
 
 

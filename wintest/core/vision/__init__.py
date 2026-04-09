@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 # Map known model paths/names to their implementation
 _MODEL_REGISTRY = {
     "showlab/ShowUI-2B": "showui",
+    "Qwen/Qwen2.5-VL-7B-Instruct": "qwen25vl",
+    "Qwen/Qwen2.5-VL-3B-Instruct": "qwen25vl",
+    "Qwen/Qwen2.5-VL-2B-Instruct": "qwen25vl",
 }
 
 
@@ -19,12 +22,17 @@ def get_model(model_settings) -> BaseVisionModel:
     # Check registry for known models
     impl = _MODEL_REGISTRY.get(model_path)
 
-    if impl == "showui" or impl is None:
-        # Default to ShowUI for unknown models (Qwen2-VL based)
+    if impl == "showui":
         from .showui import ShowUIModel
         return ShowUIModel(model_settings)
 
-    raise ValueError(f"Unknown vision model: {model_path}")
+    if impl == "qwen25vl":
+        from .qwen25vl import Qwen25VLModel
+        return Qwen25VLModel(model_settings)
+
+    # Default to ShowUI for unknown models
+    from .showui import ShowUIModel
+    return ShowUIModel(model_settings)
 
 
 # Backwards compatibility: VisionModel alias
