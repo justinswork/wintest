@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle, RotateCcw, Terminal, ChevronDown, ChevronRight, ClipboardCopy, Download, Play } from 'lucide-react';
+import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle, RotateCcw, Terminal, ChevronDown, ChevronRight, ClipboardCopy, Download, FlaskConical, FolderOpen } from 'lucide-react';
 import { reportApi } from '../api/client';
 import { useExecutionStore } from '../stores/executionStore';
 import { useTestStore } from '../stores/testStore';
@@ -242,7 +242,8 @@ function RunPicker() {
             className="run-picker-item"
             onClick={() => handleRun(item)}
           >
-            <Play size={14} />
+            {item.type === 'suite' ? <FolderOpen size={14} /> : <FlaskConical size={14} />}
+            <strong>{item.type === 'suite' ? 'Test Suite:' : 'Test:'}</strong>
             <span className="run-picker-name" title={item.name}>{item.name}</span>
             <span className="text-muted">{item.detail}</span>
           </button>
