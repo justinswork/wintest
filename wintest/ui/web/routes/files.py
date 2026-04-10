@@ -1,5 +1,7 @@
 """File utility routes — e.g. native file picker dialog."""
 
+import os
+import subprocess
 import threading
 
 from fastapi import APIRouter, HTTPException
@@ -66,3 +68,13 @@ async def pick_folder():
     if result[0]:
         return {"path": result[0]}
     raise HTTPException(status_code=204, detail="No folder selected")
+
+
+@router.post("/open-folder")
+async def open_folder(request: dict):
+    """Open a folder in the system file explorer."""
+    path = request.get("path", "")
+    if not path or not os.path.isdir(path):
+        raise HTTPException(status_code=404, detail=f"Folder not found: {path}")
+    subprocess.Popen(["explorer", os.path.normpath(path)])
+    return {"status": "opened"}

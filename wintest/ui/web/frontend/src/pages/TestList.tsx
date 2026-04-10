@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus, Play, Pencil, Trash2, Copy, FolderOpen, ChevronRight, RefreshCw } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useExecutionStore } from '../stores/executionStore';
-import { testApi } from '../api/client';
+import { testApi, fileApi, settingsApi } from '../api/client';
 import { showToast } from '../components/common/Toast';
 
 export function TestList() {
@@ -79,7 +79,13 @@ export function TestList() {
   const handleDuplicate = async (filename: string, name: string) => {
     try {
       const test = await testApi.get(filename);
-      await saveTest({ ...test, name: `${name} (Copy)`, filename: null });
+      const existingNames = new Set(tests.map(t => t.name));
+      let copyName = `${name} (Copy)`;
+      let i = 2;
+      while (existingNames.has(copyName)) {
+        copyName = `${name} (Copy ${i++})`;
+      }
+      await saveTest({ ...test, name: copyName, filename: null });
       await fetchTests();
       showToast(t('common.duplicated'));
     } catch {
@@ -100,28 +106,35 @@ export function TestList() {
   return (
     <div className="test-list">
       <div className="section-header">
-        <h2>{t('dashboard.tests')}</h2>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          {allTags.length > 0 && (
-            <select
-              className="input"
-              value={tagFilter ?? ''}
-              onChange={e => setTagFilter(e.target.value || null)}
-              style={{ width: 'auto', fontSize: '0.8rem' }}
-            >
-              <option value="">{t('testList.allTags')}</option>
-              {allTags.map(tag => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
-            </select>
-          )}
-          <button className="btn-icon" onClick={() => fetchTests()} title={t('common.refresh')}>
-            <RefreshCw size={16} />
-          </button>
+        <div className="header-actions-left">
+          <h2>{t('dashboard.tests')}</h2>
           <button className="btn btn-primary" onClick={() => navigate('/tests/new')}>
             <Plus size={16} />{t('dashboard.newTest')}
           </button>
+          <button className="btn-icon" onClick={() => {
+            settingsApi.getWorkspace().then(data => {
+              if (data.tests_dir) fileApi.openFolder(data.tests_dir);
+            });
+          }} title={t('common.openFolder')}>
+            <FolderOpen size={16} />
+          </button>
+          <button className="btn-icon" onClick={() => fetchTests()} title={t('common.refresh')}>
+            <RefreshCw size={16} />
+          </button>
         </div>
+        {allTags.length > 0 && (
+          <select
+            className="input"
+            value={tagFilter ?? ''}
+            onChange={e => setTagFilter(e.target.value || null)}
+            style={{ width: 'auto', fontSize: '0.8rem' }}
+          >
+            <option value="">{t('testList.allTags')}</option>
+            {allTags.map(tag => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
+          </select>
+        )}
       </div>
       {/* Breadcrumb folder navigation */}
       {(folderFilter || subfolders.length > 0) && (
@@ -164,8 +177,8 @@ export function TestList() {
         <div className="card-grid">
           {directTests.map(test => (
             <div key={test.filename} className="card">
-              <h3>{test.name}</h3>
-              <p className="text-muted">{test.filename.split('/').pop()} &middot; {test.step_count} steps</p>
+              <h3 title={`${test.name}\n${test.filename}`}>{test.name}</h3>
+              <p className="text-muted">{test.step_count} steps</p>
               {(test.tags ?? []).length > 0 && (
                 <div className="tag-list">
                   {test.tags.map(tag => (

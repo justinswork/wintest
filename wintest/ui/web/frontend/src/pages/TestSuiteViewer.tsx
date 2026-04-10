@@ -89,7 +89,7 @@ export function TestSuiteViewer() {
                 </button>
                 <button
                   className="btn-icon"
-                  onClick={() => navigate(`/tests/${path}/edit`)}
+                  onClick={() => navigate(`/tests/edit/${path}`)}
                   title={t('common.edit')}
                 >
                   <Pencil size={16} />

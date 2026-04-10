@@ -153,7 +153,7 @@ export function Dashboard() {
             {reports.slice(0, 5).map(report => (
               <div key={report.report_id} className="card card-clickable" onClick={() => navigate(`/reports/${report.report_id}`)}>
                 <div className="card-row">
-                  <h3>{report.test_name}</h3>
+                  <h3 title={report.test_name}>{report.test_name}</h3>
                   <StatusBadge passed={report.passed} />
                 </div>
                 <p className="text-muted">

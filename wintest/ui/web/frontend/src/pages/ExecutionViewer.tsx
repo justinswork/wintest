@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle, RotateCcw, Terminal, ChevronDown, ChevronRight, ClipboardCopy, Download } from 'lucide-react';
+import { ArrowUpNarrowWide, ArrowDownNarrowWide, XCircle, RotateCcw, Terminal, ChevronDown, ChevronRight, ClipboardCopy, Download, Play } from 'lucide-react';
+import { reportApi } from '../api/client';
 import { useExecutionStore } from '../stores/executionStore';
+import { useTestStore } from '../stores/testStore';
+import { useTestSuiteStore } from '../stores/testSuiteStore';
 import { useExecutionWebSocket } from '../api/ws';
 import { StatusBadge } from '../components/common/StatusBadge';
 
@@ -84,9 +88,7 @@ export function ExecutionViewer() {
       )}
 
       {store.status === 'idle' && !store.runId && (
-        <div className="empty-state">
-          <p>{t('execution.noExecution')}</p>
-        </div>
+        <RunPicker />
       )}
 
       <div className="execution-layout">
@@ -155,6 +157,97 @@ export function ExecutionViewer() {
       </div>
 
       <ConsolePanel />
+    </div>
+  );
+}
+
+function RunPicker() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { tests, fetchTests } = useTestStore();
+  const { testSuites, fetchTestSuites } = useTestSuiteStore();
+  const { startRun, startSuiteRun } = useExecutionStore();
+  const [recentNames, setRecentNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchTests();
+    fetchTestSuites();
+    // Get recent test names from reports
+    reportApi.list().then(reports => {
+      const seen = new Set<string>();
+      const names: string[] = [];
+      for (const r of reports) {
+        if (!seen.has(r.test_name)) {
+          seen.add(r.test_name);
+          names.push(r.test_name);
+        }
+        if (names.length >= 5) break;
+      }
+      setRecentNames(names);
+    });
+  }, [fetchTests, fetchTestSuites]);
+
+  const MAX_ITEMS = 5;
+
+  // Build a unified list: recent runs first, then remaining tests/suites
+  type RunItem = { type: 'test' | 'suite'; name: string; filename: string; detail: string };
+
+  const recentItems: RunItem[] = recentNames
+    .map(name => {
+      const test = tests.find(t => t.name === name);
+      if (test) return { type: 'test' as const, name: test.name, filename: test.filename, detail: `${test.step_count} steps` };
+      const suite = testSuites.find(s => s.name === name);
+      if (suite) return { type: 'suite' as const, name: suite.name, filename: suite.filename, detail: `${suite.test_count} tests` };
+      return null;
+    })
+    .filter(Boolean) as RunItem[];
+
+  const recentFilenames = new Set(recentItems.map(i => i.filename));
+  const otherItems: RunItem[] = [
+    ...tests.filter(t => !recentFilenames.has(t.filename)).map(t => ({
+      type: 'test' as const, name: t.name, filename: t.filename, detail: `${t.step_count} steps`,
+    })),
+    ...testSuites.filter(s => !recentFilenames.has(s.filename)).map(s => ({
+      type: 'suite' as const, name: s.name, filename: s.filename, detail: `${s.test_count} tests`,
+    })),
+  ];
+
+  const allItems = [...recentItems, ...otherItems];
+  const displayItems = allItems.slice(0, MAX_ITEMS);
+  const totalCount = tests.length + testSuites.length;
+
+  if (totalCount === 0) {
+    return (
+      <div className="run-picker">
+        <p className="empty-state">{t('execution.noTests')}</p>
+        <button className="btn btn-primary" onClick={() => navigate('/tests/new')} style={{ marginTop: '0.5rem' }}>
+          {t('execution.createTest')}
+        </button>
+      </div>
+    );
+  }
+
+  const handleRun = (item: RunItem) => {
+    if (item.type === 'suite') startSuiteRun(item.filename);
+    else startRun(item.filename);
+  };
+
+  return (
+    <div className="run-picker">
+      <p className="text-muted">{t('execution.pickToRun')}</p>
+      <div className="run-picker-list">
+        {displayItems.map(item => (
+          <button
+            key={`${item.type}-${item.filename}`}
+            className="run-picker-item"
+            onClick={() => handleRun(item)}
+          >
+            <Play size={14} />
+            <span className="run-picker-name" title={item.name}>{item.name}</span>
+            <span className="text-muted">{item.detail}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

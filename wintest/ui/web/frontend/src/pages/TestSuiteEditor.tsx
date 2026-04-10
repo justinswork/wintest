@@ -81,7 +81,7 @@ export function TestSuiteEditor() {
       const savedFilename = await saveTestSuite(testSuite, isEditing ? filename : undefined);
       showToast(t('testSuiteEditor.saved'));
       if (!isEditing) {
-        navigate(`/test-suites/${savedFilename}/edit`, { replace: true });
+        navigate(`/test-suites/edit/${savedFilename}`, { replace: true });
       }
     } catch {
       showToast(t('testSuiteEditor.saveFailed'), 'error');

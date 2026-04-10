@@ -31,6 +31,8 @@ export function Sidebar() {
         <NavLink to="/execution" title={collapsed ? t('nav.execution') : undefined}><Play size={18} />{!collapsed && <span>{t('nav.execution')}</span>}</NavLink>
         <NavLink to="/reports" title={collapsed ? t('nav.reports') : undefined}><FileText size={18} />{!collapsed && <span>{t('nav.reports')}</span>}</NavLink>
         <NavLink to="/trends" title={collapsed ? t('nav.trends') : undefined}><TrendingUp size={18} />{!collapsed && <span>{t('nav.trends')}</span>}</NavLink>
+      </div>
+      <div className="sidebar-links sidebar-links-bottom">
         <NavLink to="/settings" title={collapsed ? t('nav.settings') : undefined}><Settings size={18} />{!collapsed && <span>{t('nav.settings')}</span>}</NavLink>
         <NavLink to="/help" title={collapsed ? t('nav.help') : undefined}><HelpCircle size={18} />{!collapsed && <span>{t('nav.help')}</span>}</NavLink>
       </div>

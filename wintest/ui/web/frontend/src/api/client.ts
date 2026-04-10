@@ -40,6 +40,7 @@ export const builderApi = {
 export const fileApi = {
   pickExecutable: () => api.post<{ path: string }>('/files/pick-executable').then(r => r.data.path),
   pickFolder: () => api.post<{ path: string }>('/files/pick-folder').then(r => r.data.path),
+  openFolder: (path: string) => api.post('/files/open-folder', { path }).then(r => r.data),
 };
 
 export const savedAppsApi = {
