@@ -457,6 +457,8 @@ def execute_builder_step(step: Step, builder: BuilderState) -> dict:
     else:
         agent = builder.agent  # may be None, but non-vision steps won't use it
 
+    pre_click_b64 = None
+
     # Handle runner-level steps
     if defn.is_runner_step:
         runner_ctx = {
@@ -479,54 +481,79 @@ def execute_builder_step(step: Step, builder: BuilderState) -> dict:
         if builder.app_manager:
             builder.app_manager.focus()
 
-        # Coordinate-based clicks can use a lightweight agent without vision
+        # Coordinate-based clicks: capture pre-click screenshot with annotation
         if step.click_x is not None and step.click_y is not None:
+            # Take screenshot BEFORE the click for the step preview
+            pre_screenshot = builder.screen.capture()
+            w, h = pre_screenshot.size
+            px = int(step.click_x * w)
+            py = int(step.click_y * h)
+
+            # Annotate the pre-click screenshot
+            import io
+            from PIL import ImageDraw
+            img = pre_screenshot.copy()
+            draw = ImageDraw.Draw(img)
+            r = 25
+            draw.ellipse([(px - r, py - r), (px + r, py + r)], outline="red", width=3)
+            draw.line([(px - r, py), (px + r, py)], fill="red", width=2)
+            draw.line([(px, py - r), (px, py + r)], fill="red", width=2)
+            arrow_len = 60
+            draw.line([(px, py - r - arrow_len), (px, py - r)], fill="red", width=3)
+            draw.polygon([(px, py - r), (px - 8, py - r - 12), (px + 8, py - r - 12)], fill="red")
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            pre_click_b64 = base64.b64encode(buf.getvalue()).decode()
+
             if agent is None:
-                # Create a minimal agent with no vision model for coordinate clicks
                 agent = Agent(None, builder.screen, builder.actions)
                 agent.report_dir = None
-            result = agent.click_at(step, click_type=step.action if step.action in ("double_click", "right_click") else "click")
+            result = agent.click_at(step, click_type=step.action if step.action in ("double_click", "right_click") else "click", restore_cursor=True)
         else:
+            pre_click_b64 = None
             agent = builder.ensure_agent()
             step_timeout = step.timeout or builder.settings.timeout.step_timeout
             result = agent.execute_step(step, step_timeout=step_timeout)
 
-    # Capture a screenshot after execution, with click annotation if applicable
+    # For coordinate clicks, use the pre-click annotated screenshot as the step screenshot
+    # and also capture a clean post-click screenshot for the viewer
     screenshot_b64 = None
-    try:
-        import io
-        from PIL import ImageDraw
-        screenshot = builder.screen.capture()
+    post_screenshot_b64 = None
+    if pre_click_b64:
+        screenshot_b64 = pre_click_b64
+        # Capture clean post-click screenshot for the viewer
+        try:
+            import io
+            post_img = builder.screen.capture()
+            buf = io.BytesIO()
+            post_img.save(buf, format="PNG")
+            post_screenshot_b64 = base64.b64encode(buf.getvalue()).decode()
+        except Exception:
+            pass
+    else:
+        try:
+            import io
+            from PIL import ImageDraw
+            screenshot = builder.screen.capture()
 
-        # Draw a prominent click marker if we have coordinates
-        if result.coordinates:
-            img = screenshot.copy()
-            x, y = result.coordinates
-            draw = ImageDraw.Draw(img)
-            r = 25
-            # Outer circle
-            draw.ellipse([(x - r, y - r), (x + r, y + r)],
-                         outline="red", width=3)
-            # Inner crosshair
-            draw.line([(x - r, y), (x + r, y)], fill="red", width=2)
-            draw.line([(x, y - r), (x, y + r)], fill="red", width=2)
-            # Arrow pointing to the spot (line from above)
-            arrow_len = 60
-            draw.line([(x, y - r - arrow_len), (x, y - r)],
-                      fill="red", width=3)
-            # Arrowhead
-            draw.polygon([
-                (x, y - r),
-                (x - 8, y - r - 12),
-                (x + 8, y - r - 12),
-            ], fill="red")
-            screenshot = img
+            if result.coordinates:
+                img = screenshot.copy()
+                x, y = result.coordinates
+                draw = ImageDraw.Draw(img)
+                r = 25
+                draw.ellipse([(x - r, y - r), (x + r, y + r)], outline="red", width=3)
+                draw.line([(x - r, y), (x + r, y)], fill="red", width=2)
+                draw.line([(x, y - r), (x, y + r)], fill="red", width=2)
+                arrow_len = 60
+                draw.line([(x, y - r - arrow_len), (x, y - r)], fill="red", width=3)
+                draw.polygon([(x, y - r), (x - 8, y - r - 12), (x + 8, y - r - 12)], fill="red")
+                screenshot = img
 
-        buf = io.BytesIO()
-        screenshot.save(buf, format="PNG")
-        screenshot_b64 = base64.b64encode(buf.getvalue()).decode()
-    except Exception:
-        pass
+            buf = io.BytesIO()
+            screenshot.save(buf, format="PNG")
+            screenshot_b64 = base64.b64encode(buf.getvalue()).decode()
+        except Exception:
+            pass
 
     # For click-based steps, mark as "needs_confirmation" so the UI
     # can show accept/retry buttons
@@ -539,5 +566,6 @@ def execute_builder_step(step: Step, builder: BuilderState) -> dict:
         "model_response": result.model_response,
         "duration_seconds": round(result.duration_seconds, 2),
         "screenshot_base64": screenshot_b64,
+        "post_screenshot_base64": post_screenshot_b64,
         "needs_confirmation": needs_confirmation,
     }

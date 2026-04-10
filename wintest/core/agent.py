@@ -79,8 +79,11 @@ class Agent:
             )
         return defn.execute(step, self)
 
-    def click_at(self, step: Step, click_type: str = "click") -> StepResult:
+    def click_at(self, step: Step, click_type: str = "click",
+                 restore_cursor: bool = False) -> StepResult:
         """Click at explicit coordinates (click_x, click_y on 0-1 scale)."""
+        import pyautogui
+
         screenshot = self.screen.capture()
         w, h = screenshot.size
         px = int(step.click_x * w)
@@ -88,12 +91,20 @@ class Agent:
 
         screenshot_path = self._save_screenshot(screenshot, click_coords=(px, py))
 
+        # Save cursor position before clicking (for builder mode)
+        saved_pos = pyautogui.position() if restore_cursor else None
+
         if click_type == "click":
             self.actions.click(px, py)
         elif click_type == "double_click":
             self.actions.click(px, py, clicks=2)
         elif click_type == "right_click":
             self.actions.click(px, py, button="right")
+
+        # Restore cursor to where it was (builder UX)
+        if saved_pos:
+            time.sleep(0.1)  # brief pause to let the click register
+            pyautogui.moveTo(saved_pos[0], saved_pos[1])
 
         return StepResult(
             step=step,

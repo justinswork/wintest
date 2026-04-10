@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Play, Trash2, Save, Square, Camera, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Play, Trash2, Save, Square, Check, ChevronDown, ChevronRight, Camera } from 'lucide-react';
 import { builderApi } from '../api/client';
 import { AppPathInput } from '../components/common/AppPathInput';
 import { VariablesEditor } from '../components/tasks/VariablesEditor';
@@ -31,6 +31,7 @@ export function TestBuilder() {
   const [steps, setSteps] = useState<BuilderStep[]>([]);
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const [lastStepTime, setLastStepTime] = useState<number | null>(null);
   const [pendingStep, setPendingStep] = useState<{ step: BuilderStep; stepData: Record<string, unknown> } | null>(null);
   const [pickMode, setPickMode] = useState(false);
@@ -63,6 +64,7 @@ export function TestBuilder() {
       setSteps([]);
       setScreenshot(null);
       setSelectedStep(null);
+      setExpandedStep(null);
       setPendingStep(null);
       setPickMode(false);
       setShowRunMenu(false);
@@ -166,12 +168,10 @@ export function TestBuilder() {
         screenshot_base64: result.screenshot_base64,
       };
 
-      // Show result screenshot and ask for confirmation
+      // Show post-click screenshot in viewer, save pre-click on step
       setPendingStep({ step: builderStep, stepData });
-      if (result.screenshot_base64) {
-        setScreenshot(result.screenshot_base64);
-        setSelectedStep(null);
-      }
+      setScreenshot(result.post_screenshot_base64 ?? result.screenshot_base64 ?? null);
+      setSelectedStep(null);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Step failed';
       showToast(msg, 'error');
@@ -231,7 +231,7 @@ export function TestBuilder() {
   const acceptPendingStep = () => {
     if (!pendingStep) return;
     setSteps(prev => [...prev, pendingStep.step]);
-    setSelectedStep(steps.length);
+    setSelectedStep(null);
     setPendingStep(null);
     // Reset for next step
     setAction('click');
@@ -348,6 +348,15 @@ export function TestBuilder() {
   }, [fetchStepTypes]);
 
   useEffect(() => {
+    if (!pickMode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPickMode(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [pickMode]);
+
+  useEffect(() => {
     if (!showRunMenu) return;
     const handler = (e: MouseEvent) => {
       if (runMenuRef.current && !runMenuRef.current.contains(e.target as Node)) {
@@ -362,6 +371,8 @@ export function TestBuilder() {
     setSteps(prev => prev.filter((_, i) => i !== index));
     if (selectedStep === index) setSelectedStep(null);
     else if (selectedStep !== null && selectedStep > index) setSelectedStep(selectedStep - 1);
+    if (expandedStep === index) setExpandedStep(null);
+    else if (expandedStep !== null && expandedStep > index) setExpandedStep(expandedStep - 1);
   };
 
   const handleUpdateStep = (index: number, updated: BuilderStep) => {
@@ -407,7 +418,7 @@ export function TestBuilder() {
             <button
               className="btn btn-secondary"
               onClick={handleStartPick}
-              disabled={executing}
+              disabled={executing || pickMode}
             >
               {t('builder.pickOnScreenshot')}
             </button>
@@ -572,9 +583,6 @@ export function TestBuilder() {
             </button>
           ) : (
             <>
-              <button className="btn btn-secondary" onClick={handleCapture}>
-                <Camera size={16} />{t('builder.capture')}
-              </button>
               {steps.length > 0 && (
                 <button className="btn btn-success" onClick={handleSaveAsTest}>
                   <Save size={16} />{t('builder.saveAsTest')}
@@ -598,90 +606,29 @@ export function TestBuilder() {
         <div className="info-banner">{t('builder.loadingModel')}</div>
       )}
 
-      {active && (
-        <div className="builder-layout">
-          {/* Step list */}
-          <div className="builder-steps">
-            {steps.length === 0 ? (
-              <p className="text-muted" style={{ padding: '0.5rem' }}>{t('builder.noSteps')}</p>
-            ) : (
-              steps.map((s, i) => (
-                <div
-                  key={i}
-                  className={`builder-step-item ${selectedStep === i ? 'selected' : ''}`}
-                  onClick={() => setSelectedStep(selectedStep === i ? null : i)}
-                >
-                  <span className="step-num">#{i + 1}</span>
-                  <span className="step-label">
-                    <strong>{s.step.action}</strong>
-                    {s.step.target && <> &mdash; {s.step.target}</>}
-                    {s.step.text && <> &mdash; "{s.step.text}"</>}
-                    {s.step.app_path && <> &mdash; {s.step.app_path}</>}
-                  </span>
-                  <StatusBadge passed={s.passed} />
-                  <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); handleRemoveStep(i); }}>
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))
+      {/* Confirm/retry bar for pending steps */}
+      {active && pendingStep && (
+        <div className="builder-confirm-bar">
+          <div className="builder-confirm-info">
+            <span>{pendingStep.step.step.click_x != null ? t('builder.confirmClickPrompt') : t('builder.confirmPrompt')}</span>
+            {pendingStep.step.coordinates && (
+              <span className="text-muted">
+                Clicked at ({pendingStep.step.coordinates.join(', ')})
+              </span>
             )}
           </div>
-
-          {/* Screenshot */}
-          <div className="builder-screenshot">
-            {pickMode && (
-              <div className="builder-pick-banner">
-                {t('builder.pickInstruction')}
-              </div>
-            )}
-            {displayedScreenshot ? (
-              <img
-                ref={screenshotRef}
-                src={`data:image/png;base64,${displayedScreenshot}`}
-                alt="Current screen"
-                className={`screenshot-img${pickMode ? ' screenshot-pickable' : ''}`}
-                onClick={handleScreenshotClick}
-              />
-            ) : (
-              <div className="screenshot-placeholder">
-                <p>{t('builder.screenshotPlaceholder')}</p>
-              </div>
-            )}
-
-            {pendingStep && (
-              <div className="builder-confirm-bar">
-                <div className="builder-confirm-info">
-                  <span>{pendingStep.step.step.click_x != null ? t('builder.confirmClickPrompt') : t('builder.confirmPrompt')}</span>
-                  {pendingStep.step.coordinates && (
-                    <span className="text-muted">
-                      Clicked at ({pendingStep.step.coordinates.join(', ')})
-                    </span>
-                  )}
-                </div>
-                <div className="builder-confirm-actions">
-                  <button className="btn btn-success btn-sm" onClick={acceptPendingStep}>
-                    {t('builder.accept')}
-                  </button>
-                  <button className="btn btn-danger btn-sm" onClick={retryPendingStep}>
-                    {t('builder.retry')}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {!pendingStep && selectedStep !== null && steps[selectedStep] && (
-              <StepDetail step={steps[selectedStep]} index={selectedStep} onChange={handleUpdateStep} />
-            )}
+          <div className="builder-confirm-actions">
+            <button className="btn btn-success btn-sm" onClick={acceptPendingStep}>
+              {t('builder.accept')}
+            </button>
+            <button className="btn btn-danger btn-sm" onClick={retryPendingStep}>
+              {t('builder.retry')}
+            </button>
           </div>
         </div>
       )}
 
-      {/* Tags and Variables */}
-      {active && (
-        <BuilderMetadata tags={tags} onTagsChange={setTags} variables={variables} onVariablesChange={setVariables} />
-      )}
-
-      {/* Command input bar */}
+      {/* Command input bar — at the top for easy access */}
       {active && !pendingStep && (
         <div className="builder-input-bar">
           <select
@@ -721,6 +668,80 @@ export function TestBuilder() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Tags and Variables */}
+      {active && (
+        <BuilderMetadata tags={tags} onTagsChange={setTags} variables={variables} onVariablesChange={setVariables} />
+      )}
+
+      {active && (
+        <div className="builder-layout">
+          {/* Step list */}
+          <div className="builder-steps">
+            {steps.length === 0 ? (
+              <p className="text-muted" style={{ padding: '0.5rem' }}>{t('builder.noSteps')}</p>
+            ) : (
+              steps.map((s, i) => (
+                <div key={i}>
+                  <div
+                    className={`builder-step-item ${selectedStep === i ? 'selected' : ''}`}
+                    onClick={() => setSelectedStep(selectedStep === i ? null : i)}
+                  >
+                    <span className="step-num">#{i + 1}</span>
+                    <span className="step-label">
+                      <strong>{s.step.action}</strong>
+                      {s.step.target && <> &mdash; {s.step.target}</>}
+                      {s.step.text && <> &mdash; "{s.step.text}"</>}
+                      {s.step.app_path && <> &mdash; {s.step.app_path}</>}
+                    </span>
+                    <StatusBadge passed={s.passed} />
+                    <button className="btn-icon" onClick={(e) => { e.stopPropagation(); setExpandedStep(expandedStep === i ? null : i); }} title={t('builder.expandDetails')}>
+                      {expandedStep === i ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </button>
+                    <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); handleRemoveStep(i); }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  {expandedStep === i && (
+                    <StepDetail step={s} index={i} onChange={handleUpdateStep} />
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Screenshot */}
+          <div className="builder-screenshot">
+            <div className="builder-screenshot-toolbar">
+              <button className="btn btn-secondary btn-sm" onClick={handleCapture}>
+                <Camera size={14} />{t('builder.refreshView')}
+              </button>
+            </div>
+            {pickMode && (
+              <div className="builder-pick-banner">
+                <span>{t('builder.pickInstruction')}</span>
+                <button className="btn btn-sm" onClick={() => setPickMode(false)} style={{ marginLeft: 'auto', color: '#2563eb', background: 'none', border: '1px solid #bfdbfe' }}>
+                  {t('builder.cancelPick')}
+                </button>
+              </div>
+            )}
+            {displayedScreenshot ? (
+              <img
+                ref={screenshotRef}
+                src={`data:image/png;base64,${displayedScreenshot}`}
+                alt="Current screen"
+                className={`screenshot-img${pickMode ? ' screenshot-pickable' : ''}`}
+                onClick={handleScreenshotClick}
+              />
+            ) : (
+              <div className="screenshot-placeholder">
+                <p>{t('builder.screenshotPlaceholder')}</p>
+              </div>
+            )}
+
           </div>
         </div>
       )}
