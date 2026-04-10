@@ -342,6 +342,59 @@ select.input {
   align-items: center;
 }
 
+/* ── Folder navigation ────────────────────────────────────── */
+.folder-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.folder-breadcrumb {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.folder-breadcrumb:hover {
+  background: var(--bg-surface);
+}
+
+.folder-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.folder-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.folder-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;

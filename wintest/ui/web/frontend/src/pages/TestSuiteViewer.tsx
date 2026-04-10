@@ -10,7 +10,7 @@ import { showToast } from '../components/common/Toast';
 export function TestSuiteViewer() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { filename } = useParams();
+  const { '*': filename } = useParams();
   const { currentTestSuite, fetchTestSuite, loading } = useTestSuiteStore();
   const { status: runStatus } = useExecutionStore();
 
@@ -62,7 +62,7 @@ export function TestSuiteViewer() {
           </button>
           <button
             className="btn btn-secondary"
-            onClick={() => navigate(`/test-suites/${filename}/edit`)}
+            onClick={() => navigate(`/test-suites/edit/${filename}`)}
           >
             <Pencil size={16} />{t('common.edit')}
           </button>

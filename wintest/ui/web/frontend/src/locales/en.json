@@ -188,6 +188,7 @@
   "common.duplicate": "Duplicate",
   "common.duplicated": "Duplicated successfully",
   "common.duplicateFailed": "Failed to duplicate",
+  "common.refresh": "Refresh",
   "common.run": "Run",
   "common.edit": "Edit",
   "common.delete": "Delete",

@@ -1,6 +1,6 @@
 """Test CRUD API routes."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from .. import state as state_module
 from ..models import TestModel, TestListItem, ValidationResult, StepInfo
@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("", response_model=list[TestListItem])
 async def list_tests():
-    """List all test YAML files."""
+    """List all test YAML files (including subfolders)."""
     settings = state_module.app_state.settings
     return test_service.list_tests(settings=settings)
 
@@ -22,14 +22,14 @@ async def list_step_types():
     return test_service.get_step_types()
 
 
-@router.get("/{filename}", response_model=TestModel)
-async def get_test(filename: str):
-    """Get a test definition by filename."""
+@router.get("/file/{filepath:path}", response_model=TestModel)
+async def get_test(filepath: str):
+    """Get a test definition by filepath (supports subfolders)."""
     settings = state_module.app_state.settings
     try:
-        return test_service.get_test(filename, settings=settings)
+        return test_service.get_test(filepath, settings=settings)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Test not found: {filename}")
+        raise HTTPException(status_code=404, detail=f"Test not found: {filepath}")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -41,28 +41,28 @@ async def create_test(test: TestModel):
     return {"filename": filename, "message": "Test created."}
 
 
-@router.put("/{filename}", response_model=dict)
-async def update_test(filename: str, test: TestModel):
+@router.put("/file/{filepath:path}", response_model=dict)
+async def update_test(filepath: str, test: TestModel):
     """Create or update a test file."""
-    test_service.save_test(test, filename=filename)
-    return {"filename": filename, "message": "Test saved."}
+    test_service.save_test(test, filename=filepath)
+    return {"filename": filepath, "message": "Test saved."}
 
 
-@router.delete("/{filename}")
-async def delete_test(filename: str):
+@router.delete("/file/{filepath:path}")
+async def delete_test(filepath: str):
     """Delete a test file."""
     try:
-        test_service.delete_test(filename)
-        return {"message": f"Deleted {filename}"}
+        test_service.delete_test(filepath)
+        return {"message": f"Deleted {filepath}"}
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Test not found: {filename}")
+        raise HTTPException(status_code=404, detail=f"Test not found: {filepath}")
 
 
-@router.post("/{filename}/validate", response_model=ValidationResult)
-async def validate_test(filename: str):
+@router.post("/file/{filepath:path}/validate", response_model=ValidationResult)
+async def validate_test(filepath: str):
     """Validate a test file."""
     settings = state_module.app_state.settings
     try:
-        return test_service.validate_test_file(filename, settings=settings)
+        return test_service.validate_test_file(filepath, settings=settings)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Test not found: {filename}")
+        raise HTTPException(status_code=404, detail=f"Test not found: {filepath}")

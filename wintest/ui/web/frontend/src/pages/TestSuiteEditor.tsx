@@ -50,7 +50,7 @@ const EMPTY_TEST_SUITE: TestSuite = {
 export function TestSuiteEditor() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { filename } = useParams();
+  const { '*': filename } = useParams();
   const isEditing = !!filename;
 
   const { currentTestSuite, fetchTestSuite, saveTestSuite, setCurrentTestSuite } = useTestSuiteStore();

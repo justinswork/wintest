@@ -5,20 +5,20 @@ const api = axios.create({ baseURL: '/api' });
 
 export const testApi = {
   list: () => api.get<TestListItem[]>('/tests').then(r => r.data),
-  get: (filename: string) => api.get<Test>(`/tests/${filename}`).then(r => r.data),
+  get: (filepath: string) => api.get<Test>(`/tests/file/${filepath}`).then(r => r.data),
   create: (test: Test) => api.post('/tests', test).then(r => r.data),
-  update: (filename: string, test: Test) => api.put(`/tests/${filename}`, test).then(r => r.data),
-  delete: (filename: string) => api.delete(`/tests/${filename}`).then(r => r.data),
-  validate: (filename: string) => api.post<ValidationResult>(`/tests/${filename}/validate`).then(r => r.data),
+  update: (filepath: string, test: Test) => api.put(`/tests/file/${filepath}`, test).then(r => r.data),
+  delete: (filepath: string) => api.delete(`/tests/file/${filepath}`).then(r => r.data),
+  validate: (filepath: string) => api.post<ValidationResult>(`/tests/file/${filepath}/validate`).then(r => r.data),
   stepTypes: () => api.get<StepInfo[]>('/tests/steps').then(r => r.data),
 };
 
 export const testSuiteApi = {
   list: () => api.get<TestSuiteListItem[]>('/test-suites').then(r => r.data),
-  get: (filename: string) => api.get<TestSuite>(`/test-suites/${filename}`).then(r => r.data),
+  get: (filepath: string) => api.get<TestSuite>(`/test-suites/file/${filepath}`).then(r => r.data),
   create: (testSuite: TestSuite) => api.post('/test-suites', testSuite).then(r => r.data),
-  update: (filename: string, testSuite: TestSuite) => api.put(`/test-suites/${filename}`, testSuite).then(r => r.data),
-  delete: (filename: string) => api.delete(`/test-suites/${filename}`).then(r => r.data),
+  update: (filepath: string, testSuite: TestSuite) => api.put(`/test-suites/file/${filepath}`, testSuite).then(r => r.data),
+  delete: (filepath: string) => api.delete(`/test-suites/file/${filepath}`).then(r => r.data),
 };
 
 export const executionApi = {

@@ -14,25 +14,26 @@ TESTS_DIR = "tests"
 
 
 def list_tests(settings=None) -> list[TestListItem]:
-    """List all test YAML files in the tests directory."""
+    """List all test YAML files in the tests directory, including subfolders."""
     tests_dir = Path(TESTS_DIR)
     if not tests_dir.exists():
         return []
 
     items = []
-    for path in sorted(tests_dir.glob("*.yaml")):
+    for path in sorted(tests_dir.rglob("*.yaml")):
+        rel_path = path.relative_to(tests_dir).as_posix()
         try:
             test = load_test(str(path), settings=settings)
             items.append(TestListItem(
-                filename=path.name,
+                filename=rel_path,
                 name=test.name,
                 step_count=len(test.steps),
                 tags=test.tags,
             ))
         except (ValueError, Exception):
             items.append(TestListItem(
-                filename=path.name,
-                name=f"(invalid: {path.name})",
+                filename=rel_path,
+                name=f"(invalid: {rel_path})",
                 step_count=0,
             ))
     return items
@@ -145,6 +146,7 @@ def save_test(test: TestModel, filename: str | None = None) -> str:
     tests_dir = Path(TESTS_DIR)
     tests_dir.mkdir(exist_ok=True)
     path = tests_dir / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
 
     # Atomic write
     tmp_path = path.with_suffix(".yaml.tmp")

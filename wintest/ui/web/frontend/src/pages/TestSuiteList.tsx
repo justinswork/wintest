@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Play, Pencil, Trash2, Copy } from 'lucide-react';
+import { Plus, Play, Pencil, Trash2, Copy, RefreshCw } from 'lucide-react';
 import { useTestSuiteStore } from '../stores/testSuiteStore';
 import { useExecutionStore } from '../stores/executionStore';
 import { executionApi, testSuiteApi } from '../api/client';
@@ -51,16 +51,21 @@ export function TestSuiteList() {
     <div className="test-suite-list">
       <div className="section-header">
         <h2>{t('dashboard.testSuites')}</h2>
-        <button className="btn btn-primary" onClick={() => navigate('/test-suites/new')}>
-          <Plus size={16} />{t('dashboard.newTestSuite')}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button className="btn-icon" onClick={() => fetchTestSuites()} title={t('common.refresh')}>
+            <RefreshCw size={16} />
+          </button>
+          <button className="btn btn-primary" onClick={() => navigate('/test-suites/new')}>
+            <Plus size={16} />{t('dashboard.newTestSuite')}
+          </button>
+        </div>
       </div>
       {testSuites.length === 0 ? (
         <p className="empty-state">{t('dashboard.noTestSuites')}</p>
       ) : (
         <div className="card-grid">
           {testSuites.map(testSuite => (
-            <div key={testSuite.filename} className="card card-clickable" onClick={() => navigate(`/test-suites/${testSuite.filename}`)}>
+            <div key={testSuite.filename} className="card card-clickable" onClick={() => navigate(`/test-suites/view/${testSuite.filename}`)}>
               <h3>{testSuite.name}</h3>
               <p className="text-muted">{testSuite.filename} &middot; {testSuite.test_count} tests</p>
               {testSuite.description && <p className="text-muted">{testSuite.description}</p>}
@@ -68,7 +73,7 @@ export function TestSuiteList() {
                 <button className="btn-icon" onClick={() => handleRun(testSuite.filename)} disabled={status === 'running'} title={t('common.run')}>
                   <Play size={16} />
                 </button>
-                <button className="btn-icon" onClick={() => navigate(`/test-suites/${testSuite.filename}/edit`)} title={t('common.edit')}>
+                <button className="btn-icon" onClick={() => navigate(`/test-suites/edit/${testSuite.filename}`)} title={t('common.edit')}>
                   <Pencil size={16} />
                 </button>
                 <button className="btn-icon" onClick={() => handleDuplicate(testSuite.filename, testSuite.name)} title={t('common.duplicate')}>

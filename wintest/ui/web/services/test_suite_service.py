@@ -19,19 +19,20 @@ def list_suites() -> list[TestSuiteListItem]:
         return []
 
     items = []
-    for path in sorted(suites_dir.glob("*.yaml")):
+    for path in sorted(suites_dir.rglob("*.yaml")):
+        rel_path = path.relative_to(suites_dir).as_posix()
         try:
             suite = load_test_suite(str(path))
             items.append(TestSuiteListItem(
-                filename=path.name,
+                filename=rel_path,
                 name=suite.name,
                 description=suite.description,
                 test_count=len(suite.test_paths),
             ))
         except (ValueError, Exception):
             items.append(TestSuiteListItem(
-                filename=path.name,
-                name=f"(invalid: {path.name})",
+                filename=rel_path,
+                name=f"(invalid: {rel_path})",
                 description="",
                 test_count=0,
             ))
@@ -75,6 +76,7 @@ def save_suite(suite: TestSuiteModel, filename: str | None = None) -> str:
     suites_dir = Path(SUITES_DIR)
     suites_dir.mkdir(exist_ok=True)
     path = suites_dir / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
 
     tmp_path = path.with_suffix(".yaml.tmp")
     with open(tmp_path, "w") as f:

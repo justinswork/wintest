@@ -22,7 +22,7 @@ const EMPTY_TEST: Test = {
 
 export function TestEditor() {
   const { t } = useTranslation();
-  const { filename } = useParams<{ filename: string }>();
+  const { '*': filename } = useParams();
   const navigate = useNavigate();
   const { fetchTest, fetchStepTypes, saveTest, validateTest, validation, loading } = useTestStore();
   const { startRun, status } = useExecutionStore();
@@ -132,7 +132,7 @@ export function TestEditor() {
       setSavedFilename(normalized);
       setDirty(false);
       showToast(t('testEditor.savedAs', { filename: normalized }));
-      navigate(`/tests/${normalized}/edit`, { replace: true });
+      navigate(`/tests/edit/${normalized}`, { replace: true });
     } catch {
       showToast(t('testEditor.saveFailed'), 'error');
     } finally {
