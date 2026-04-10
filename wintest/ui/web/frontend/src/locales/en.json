@@ -62,6 +62,9 @@
   "testEditor.unsavedChanges": "You have unsaved changes. Leave without saving?",
   "testEditor.loading": "Loading test...",
   "testEditor.saveAsPrompt": "Save as filename:",
+  "testEditor.tip": "Tip:",
+  "testEditor.builderHint": "You can build tests interactively by clicking through your application in the",
+  "testEditor.builderLink": "Test Builder",
   "testEditor.valid": "Test is valid.",
   "testEditor.variables": "Variables",
 

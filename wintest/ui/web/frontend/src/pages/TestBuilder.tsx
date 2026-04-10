@@ -463,8 +463,8 @@ export function TestBuilder() {
   return (
     <div className="builder-page">
       <div className="section-header">
-        <h2>{t('builder.title')}</h2>
-        <div className="header-actions">
+        <div className="header-actions-left">
+          <h2>{t('builder.title')}</h2>
           {!active ? (
             <button className="btn btn-primary" onClick={handleStart} disabled={loading}>
               <Play size={16} />{loading ? t('builder.starting') : t('builder.start')}

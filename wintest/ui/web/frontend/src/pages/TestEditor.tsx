@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate, useBlocker } from 'react-router-dom';
+import { useParams, useNavigate, useBlocker, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Save, CheckCircle, Play, Plus } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
@@ -211,6 +211,12 @@ export function TestEditor() {
           )}
         </div>
       </div>
+
+      {!isEditing && (
+        <div className="tip-banner">
+          <strong>{t('testEditor.tip')}</strong> {t('testEditor.builderHint')} <Link to="/builder">{t('testEditor.builderLink')}</Link>
+        </div>
+      )}
 
       {validation && (
         <div className={`validation-box ${validation.valid ? 'valid' : 'invalid'}`}>

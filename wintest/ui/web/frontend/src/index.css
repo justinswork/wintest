@@ -1775,6 +1775,22 @@ select.input {
   max-width: 600px;
 }
 
+.tip-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-lg);
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #1e40af;
+}
+
+.tip-banner a {
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
 .workspace-banner {
   background: #fefce8;
   border: 1px solid #eab308;
