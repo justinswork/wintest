@@ -250,6 +250,7 @@
   "builder.starting": "Starting...",
   "builder.stop": "End Session",
   "builder.started": "Builder session started",
+  "builder.confirmStop": "You have unsaved steps. End the session and discard them?",
   "builder.stopped": "Builder session ended",
   "builder.startFailed": "Failed to start builder session",
   "builder.refreshView": "Refresh View",

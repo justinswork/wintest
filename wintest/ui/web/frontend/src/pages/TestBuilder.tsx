@@ -93,6 +93,7 @@ export function TestBuilder() {
   };
 
   const handleStop = async () => {
+    if (steps.length > 0 && !window.confirm(t('builder.confirmStop'))) return;
     try {
       await builderApi.stop();
     } catch { /* ignore */ }
