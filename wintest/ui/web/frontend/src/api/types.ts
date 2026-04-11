@@ -22,6 +22,8 @@ export interface Step {
   region: number[] | null;
   baseline_id: string | null;
   similarity_threshold: number;
+  file_path: string | null;
+  compare_mode: string;
 }
 
 export interface Test {
@@ -191,5 +193,7 @@ export function newStep(): Step {
     region: null,
     baseline_id: null,
     similarity_threshold: 0.90,
+    file_path: null,
+    compare_mode: 'exact',
   };
 }

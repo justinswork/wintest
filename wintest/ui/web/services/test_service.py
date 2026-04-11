@@ -71,6 +71,8 @@ def get_test(filename: str, settings=None) -> TestModel:
             region=step.region,
             baseline_id=step.baseline_id,
             similarity_threshold=step.similarity_threshold,
+            file_path=step.file_path,
+            compare_mode=step.compare_mode,
         ))
 
     return TestModel(
@@ -142,6 +144,10 @@ def save_test(test: TestModel, filename: str | None = None) -> str:
             step_data["baseline_id"] = step.baseline_id
         if step.similarity_threshold != 0.90:
             step_data["similarity_threshold"] = step.similarity_threshold
+        if step.file_path is not None:
+            step_data["file_path"] = step.file_path
+        if step.compare_mode != "exact":
+            step_data["compare_mode"] = step.compare_mode
         data["steps"].append(step_data)
 
     if test.variables:

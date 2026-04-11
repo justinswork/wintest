@@ -27,6 +27,8 @@ class StepModel(BaseModel):
     region: list[float] | None = None
     baseline_id: str | None = None
     similarity_threshold: float = 0.90
+    file_path: str | None = None
+    compare_mode: str = "exact"
 
 
 class TestModel(BaseModel):

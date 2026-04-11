@@ -101,3 +101,29 @@ async def get_screenshot():
         return {"screenshot_base64": b64}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class DetectNewFileRequest(BaseModel):
+    dir_path: str
+    known_files: dict[str, float]  # filename -> mtime
+
+
+@router.post("/detect-new-file")
+async def detect_new_file(request: DetectNewFileRequest):
+    """Check for new files in a directory compared to a snapshot."""
+    import os
+    if not os.path.isdir(request.dir_path):
+        raise HTTPException(status_code=404, detail=f"Directory not found: {request.dir_path}")
+
+    current = {}
+    for name in os.listdir(request.dir_path):
+        full = os.path.join(request.dir_path, name)
+        if os.path.isfile(full):
+            current[name] = os.path.getmtime(full)
+
+    new_files = []
+    for name, mtime in current.items():
+        if name not in request.known_files or mtime > request.known_files.get(name, 0):
+            new_files.append({"name": name, "path": os.path.join(request.dir_path, name), "mtime": mtime})
+
+    return {"new_files": new_files}

@@ -35,10 +35,13 @@ export const builderApi = {
   step: (step: Record<string, unknown>) => api.post('/builder/step', step).then(r => r.data),
   stop: () => api.post('/builder/stop').then(r => r.data),
   screenshot: () => api.get('/builder/screenshot').then(r => r.data),
+  detectNewFile: (dir_path: string, known_files: Record<string, number>) =>
+    api.post('/builder/detect-new-file', { dir_path, known_files }).then(r => r.data),
 };
 
 export const fileApi = {
   pickExecutable: () => api.post<{ path: string }>('/files/pick-executable').then(r => r.data.path),
+  pickFile: () => api.post<{ path: string }>('/files/pick-file').then(r => r.data.path),
   pickFolder: () => api.post<{ path: string }>('/files/pick-folder').then(r => r.data.path),
   openFolder: (path: string) => api.post('/files/open-folder', { path }).then(r => r.data),
 };
@@ -52,6 +55,7 @@ export const savedAppsApi = {
 export const baselineApi = {
   list: () => api.get('/baselines').then(r => r.data),
   save: (image_base64: string, name: string) => api.post('/baselines', { image_base64, name }).then(r => r.data),
+  saveFromFile: (source_path: string, name: string) => api.post('/baselines/from-file', { source_path, name }).then(r => r.data),
   get: (id: string) => api.get(`/baselines/${id}`).then(r => r.data),
   delete: (id: string) => api.delete(`/baselines/${id}`).then(r => r.data),
 };

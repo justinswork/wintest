@@ -67,6 +67,8 @@ def load_test(filepath: str, settings=None) -> TestDefinition:
             region=step_data.get("region"),
             baseline_id=step_data.get("baseline_id"),
             similarity_threshold=step_data.get("similarity_threshold", 0.90),
+            file_path=step_data.get("file_path"),
+            compare_mode=step_data.get("compare_mode", "exact"),
         ))
 
     return TestDefinition(

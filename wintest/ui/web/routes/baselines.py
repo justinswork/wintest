@@ -16,6 +16,11 @@ class SaveBaselineRequest(BaseModel):
     name: str = ""     # optional human-readable name
 
 
+class SaveFileBaselineRequest(BaseModel):
+    source_path: str   # path to file on disk to copy as baseline
+    name: str = ""     # optional human-readable name
+
+
 @router.post("")
 async def save_baseline(request: SaveBaselineRequest):
     """Save a baseline image. Returns the baseline_id."""
@@ -42,6 +47,38 @@ async def save_baseline(request: SaveBaselineRequest):
         raise HTTPException(status_code=400, detail=f"Failed to save baseline: {e}")
 
     return {"baseline_id": baseline_id, "path": str(path)}
+
+
+@router.post("/from-file")
+async def save_file_baseline(request: SaveFileBaselineRequest):
+    """Copy a file from disk as a baseline."""
+    import shutil
+    from pathlib import Path
+
+    source = Path(request.source_path)
+    if not source.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {request.source_path}")
+
+    baseline_id = request.name or source.stem
+    baseline_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in baseline_id)
+
+    baselines = workspace.baselines_dir()
+    ext = source.suffix
+    dest = baselines / f"{baseline_id}{ext}"
+
+    counter = 1
+    original_id = baseline_id
+    while dest.exists():
+        baseline_id = f"{original_id}_{counter}"
+        dest = baselines / f"{baseline_id}{ext}"
+        counter += 1
+
+    try:
+        shutil.copy2(str(source), str(dest))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to copy file: {e}")
+
+    return {"baseline_id": f"{baseline_id}{ext}", "path": str(dest)}
 
 
 @router.get("")

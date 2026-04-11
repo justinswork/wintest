@@ -25,8 +25,10 @@ class Step:
     click_x: Optional[float] = None
     click_y: Optional[float] = None
     region: Optional[list[float]] = None  # [x1, y1, x2, y2] normalized 0-1
-    baseline_id: Optional[str] = None     # ID referencing saved baseline image
+    baseline_id: Optional[str] = None     # ID referencing saved baseline image/file
     similarity_threshold: float = 0.90    # 0-1, how similar the region must be
+    file_path: Optional[str] = None       # path to file to compare
+    compare_mode: str = "exact"           # "exact" or "image"
 
 
 @dataclass

@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Play, Trash2, Save, Square, Check, ChevronDown, ChevronRight, Camera } from 'lucide-react';
-import { builderApi, baselineApi } from '../api/client';
+import { Play, Trash2, Save, Square, Check, ChevronDown, ChevronRight, Camera, FolderOpen } from 'lucide-react';
+import { builderApi, baselineApi, fileApi } from '../api/client';
 import { AppPathInput } from '../components/common/AppPathInput';
 import { VariablesEditor } from '../components/tasks/VariablesEditor';
 import { useTestStore } from '../stores/testStore';
@@ -54,6 +54,8 @@ export function TestBuilder() {
   const [regionRect, setRegionRect] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   const [similarityThreshold, setSimilarityThreshold] = useState(0.90);
+  const [filePath, setFilePath] = useState('');
+  const [compareMode, setCompareMode] = useState('exact');
   const [variableName, setVariableName] = useState('');
   const [variableValue, setVariableValue] = useState('');
   const [loopTarget, setLoopTarget] = useState(1);
@@ -87,6 +89,8 @@ export function TestBuilder() {
       setVariableValue('');
       setLoopTarget(1);
       setRepeatCount(1);
+    setFilePath('');
+    setCompareMode('exact');
       setTags([]);
       setVariables({});
       showToast(t('builder.started'));
@@ -331,6 +335,18 @@ export function TestBuilder() {
       case 'verify_screenshot':
         // Handled separately via handleSaveBaseline
         break;
+      case 'compare_file':
+        step.file_path = filePath;
+        step.compare_mode = compareMode;
+        step.similarity_threshold = similarityThreshold;
+        break;
+      case 'watch_directory':
+        step.file_path = filePath;
+        break;
+      case 'compare_new_file':
+        step.compare_mode = compareMode;
+        step.similarity_threshold = similarityThreshold;
+        break;
     }
     return step;
   };
@@ -360,6 +376,8 @@ export function TestBuilder() {
     setVariableValue('');
     setLoopTarget(1);
     setRepeatCount(1);
+    setFilePath('');
+    setCompareMode('exact');
   };
 
   const retryPendingStep = () => {
@@ -373,18 +391,80 @@ export function TestBuilder() {
     }
   };
 
-  const handleSaveStep = () => {
-    const stepData = buildStepFromForm();
-    const builderStep: BuilderStep = {
-      step: buildStepRecord(stepData),
-      passed: true,
-      error: null,
-      coordinates: null,
-      model_response: null,
-      duration_seconds: 0,
-      screenshot_base64: null,
-    };
-    setSteps(prev => [...prev, builderStep]);
+  const handleSaveStep = async () => {
+    // For compare_file, save the file as a baseline first
+    if (action === 'compare_file' && filePath) {
+      try {
+        const baselineName = description || `file_baseline_step${steps.length + 1}`;
+        const result = await baselineApi.saveFromFile(filePath, baselineName);
+        const stepData = buildStepFromForm();
+        stepData.baseline_id = result.baseline_id;
+        const builderStep: BuilderStep = {
+          step: buildStepRecord(stepData),
+          passed: true,
+          error: null,
+          coordinates: null,
+          model_response: null,
+          duration_seconds: 0,
+          screenshot_base64: null,
+        };
+        setSteps(prev => [...prev, builderStep]);
+        showToast(t('builder.baselineSaved'));
+      } catch {
+        showToast(t('builder.baselineSaveFailed'), 'error');
+        return;
+      }
+    } else if (action === 'compare_new_file') {
+      // Find the watch_directory step to get the dir and snapshot
+      const watchStep = [...steps].reverse().find(s => s.step.action === 'watch_directory');
+      if (!watchStep?.step.file_path) {
+        showToast(t('builder.noWatchDirectory'), 'error');
+        return;
+      }
+
+      try {
+        // Find the most recent file in the watched directory
+        const detected = await builderApi.detectNewFile(watchStep.step.file_path, {});
+        if (!detected.new_files || detected.new_files.length === 0) {
+          showToast(t('builder.noNewFile'), 'error');
+          return;
+        }
+
+        // Pick the newest file
+        const newest = detected.new_files.sort((a: { mtime: number }, b: { mtime: number }) => b.mtime - a.mtime)[0];
+        const baselineName = description || `file_baseline_step${steps.length + 1}`;
+        const result = await baselineApi.saveFromFile(newest.path, baselineName);
+
+        const stepData = buildStepFromForm();
+        stepData.baseline_id = result.baseline_id;
+        const builderStep: BuilderStep = {
+          step: buildStepRecord(stepData),
+          passed: true,
+          error: null,
+          coordinates: null,
+          model_response: `Baseline from: ${newest.name}`,
+          duration_seconds: 0,
+          screenshot_base64: null,
+        };
+        setSteps(prev => [...prev, builderStep]);
+        showToast(`${t('builder.baselineSaved')} — ${newest.name}`);
+      } catch {
+        showToast(t('builder.baselineSaveFailed'), 'error');
+        return;
+      }
+    } else {
+      const stepData = buildStepFromForm();
+      const builderStep: BuilderStep = {
+        step: buildStepRecord(stepData),
+        passed: true,
+        error: null,
+        coordinates: null,
+        model_response: null,
+        duration_seconds: 0,
+        screenshot_base64: null,
+      };
+      setSteps(prev => [...prev, builderStep]);
+    }
     setSelectedStep(steps.length);
 
     // Reset for next step
@@ -400,9 +480,17 @@ export function TestBuilder() {
     setVariableValue('');
     setLoopTarget(1);
     setRepeatCount(1);
+    setFilePath('');
+    setCompareMode('exact');
   };
 
   const handleExecute = async () => {
+    // For file comparison steps, redirect to save flow
+    if (action === 'compare_file' || action === 'compare_new_file') {
+      await handleSaveStep();
+      return;
+    }
+
     setExecuting(true);
     try {
       const stepData = buildStepFromForm();
@@ -448,6 +536,8 @@ export function TestBuilder() {
     setVariableValue('');
     setLoopTarget(1);
     setRepeatCount(1);
+    setFilePath('');
+    setCompareMode('exact');
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Step failed';
@@ -705,6 +795,77 @@ export function TestBuilder() {
                 style={{ width: 70 }}
               />
             </label>
+          </>
+        );
+      case 'watch_directory':
+        return (
+          <>
+            <input
+              ref={inputRef}
+              className="input flex-1"
+              placeholder={t('builder.watchDirPlaceholder')}
+              value={filePath}
+              onChange={e => setFilePath(e.target.value)}
+              disabled={executing}
+            />
+            <button
+              className="btn-icon"
+              onClick={async () => {
+                try { setFilePath(await fileApi.pickFolder()); } catch { /* cancelled */ }
+              }}
+              disabled={executing}
+              title={t('appPath.browse')}
+            >
+              <FolderOpen size={16} />
+            </button>
+          </>
+        );
+      case 'compare_new_file':
+        return (
+          <>
+            <select
+              className="input"
+              value={compareMode}
+              onChange={e => setCompareMode(e.target.value)}
+              disabled={executing}
+              style={{ width: 'auto' }}
+            >
+              <option value="exact">{t('builder.modeExact')}</option>
+              <option value="image">{t('builder.modeImage')}</option>
+            </select>
+          </>
+        );
+      case 'compare_file':
+        return (
+          <>
+            <input
+              ref={inputRef}
+              className="input flex-1"
+              placeholder={t('builder.filePathPlaceholder')}
+              value={filePath}
+              onChange={e => setFilePath(e.target.value)}
+              disabled={executing}
+            />
+            <button
+              className="btn-icon"
+              onClick={async () => {
+                try { setFilePath(await fileApi.pickFile()); } catch { /* cancelled */ }
+              }}
+              disabled={executing}
+              title={t('appPath.browse')}
+            >
+              <FolderOpen size={16} />
+            </button>
+            <select
+              className="input"
+              value={compareMode}
+              onChange={e => setCompareMode(e.target.value)}
+              disabled={executing}
+              style={{ width: 'auto' }}
+            >
+              <option value="exact">{t('builder.modeExact')}</option>
+              <option value="image">{t('builder.modeImage')}</option>
+            </select>
           </>
         );
       default:

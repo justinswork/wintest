@@ -128,6 +128,25 @@ const FIELD_RENDERERS: Record<string, FieldRenderer> = {
       onChange={e => update('repeat', parseInt(e.target.value) || 0)}
     />
   ),
+  file_path: (step, _field, update, t) => (
+    <input
+      className="input"
+      placeholder={t('stepForm.filePathPlaceholder')}
+      value={step.file_path ?? ''}
+      onChange={e => update('file_path', e.target.value || null)}
+    />
+  ),
+  compare_mode: (step, _field, update, t) => (
+    <select
+      className="input"
+      value={step.compare_mode}
+      onChange={e => update('compare_mode', e.target.value)}
+      style={{ width: 'auto' }}
+    >
+      <option value="exact">{t('stepForm.modeExact')}</option>
+      <option value="image">{t('stepForm.modeImage')}</option>
+    </select>
+  ),
   baseline_id: (step, _field, update, t) => (
     <input
       className="input"
