@@ -153,22 +153,24 @@ def _run_test(test_file: str, run_id: str, app_state: AppState, loop: asyncio.Ab
     """Execute the test in a worker thread."""
     log_handler = _attach_log_handler(run_id, app_state)
     try:
-        # Ensure model is loaded
-        if app_state.vision_model is None:
-            app_state.model_status = "loading"
-            app_state.broadcast_sync({"type": "model_loading", "message": "Loading AI model..."})
-
-            vision = VisionModel(model_settings=app_state.settings.model)
-            vision.load()
-
-            app_state.vision_model = vision
-            app_state.model_status = "loaded"
-            app_state.broadcast_sync({"type": "model_loaded", "message": "Model loaded."})
-        else:
-            vision = app_state.vision_model
-
         path = str(workspace.tests_dir() / test_file)
         test = load_test(path, settings=app_state.settings)
+
+        # Only load the AI model if a step actually needs it
+        vision = None
+        if any(_needs_vision(s) for s in test.steps):
+            if app_state.vision_model is None:
+                app_state.model_status = "loading"
+                app_state.broadcast_sync({"type": "model_loading", "message": "Loading AI model..."})
+
+                vision = VisionModel(model_settings=app_state.settings.model)
+                vision.load()
+
+                app_state.vision_model = vision
+                app_state.model_status = "loaded"
+                app_state.broadcast_sync({"type": "model_loaded", "message": "Model loaded."})
+            else:
+                vision = app_state.vision_model
 
         screen = ScreenCapture(coordinate_scale=app_state.settings.action.coordinate_scale)
         actions = ActionExecutor(action_settings=app_state.settings.action)
@@ -299,21 +301,35 @@ def _run_test_suite(suite_file: str, run_id: str, app_state: AppState, loop: asy
     """Execute the test suite in a worker thread."""
     log_handler = _attach_log_handler(run_id, app_state)
     try:
-        if app_state.vision_model is None:
-            app_state.model_status = "loading"
-            app_state.broadcast_sync({"type": "model_loading", "message": "Loading AI model..."})
-
-            vision = VisionModel(model_settings=app_state.settings.model)
-            vision.load()
-
-            app_state.vision_model = vision
-            app_state.model_status = "loaded"
-            app_state.broadcast_sync({"type": "model_loaded", "message": "Model loaded."})
-        else:
-            vision = app_state.vision_model
-
         path = str(workspace.suites_dir() / suite_file)
         suite = load_test_suite(path)
+
+        # Check if any test in the suite needs vision
+        vision = None
+        needs_model = False
+        for test_path in suite.test_paths:
+            full_path = str(workspace.tests_dir() / test_path)
+            try:
+                t = load_test(full_path, settings=app_state.settings)
+                if any(_needs_vision(s) for s in t.steps):
+                    needs_model = True
+                    break
+            except Exception:
+                pass
+
+        if needs_model:
+            if app_state.vision_model is None:
+                app_state.model_status = "loading"
+                app_state.broadcast_sync({"type": "model_loading", "message": "Loading AI model..."})
+
+                vision = VisionModel(model_settings=app_state.settings.model)
+                vision.load()
+
+                app_state.vision_model = vision
+                app_state.model_status = "loaded"
+                app_state.broadcast_sync({"type": "model_loaded", "message": "Model loaded."})
+            else:
+                vision = app_state.vision_model
 
         screen = ScreenCapture(coordinate_scale=app_state.settings.action.coordinate_scale)
         actions = ActionExecutor(action_settings=app_state.settings.action)

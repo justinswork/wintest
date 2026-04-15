@@ -24,7 +24,7 @@ class Agent:
 
     def __init__(
         self,
-        vision: VisionModel,
+        vision: VisionModel | None,
         screen: ScreenCapture,
         actions: ActionExecutor,
         report_dir: str = None,
