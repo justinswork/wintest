@@ -185,7 +185,6 @@ export function TestBuilder() {
 
       // Coordinate clicks are accepted immediately — no confirmation needed
       setSteps(prev => [...prev, builderStep]);
-      setScreenshot(result.post_screenshot_base64 ?? result.screenshot_base64 ?? null);
       setSelectedStep(null);
       // Reset for next step
       setAction('click');
@@ -197,6 +196,14 @@ export function TestBuilder() {
       setRepeatCount(1);
       setFilePath('');
       setCompareMode('exact');
+
+      // Auto-continue pick mode: use the post-click screenshot so the user
+      // can immediately click the next target without pressing the button again.
+      const nextScreenshot = result.post_screenshot_base64 ?? result.screenshot_base64 ?? null;
+      setScreenshot(nextScreenshot);
+      if (nextScreenshot) {
+        setPickMode(true);
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Step failed';
       showToast(msg, 'error');
