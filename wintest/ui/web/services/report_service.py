@@ -87,13 +87,17 @@ def export_pdf(report_id: str) -> Path:
     generated_at = data.get("generated_at", "")
     steps = data.get("steps", [])
 
+    def _safe(text: str) -> str:
+        """Sanitize text for PDF — replace chars that Helvetica can't handle."""
+        return text.encode('latin-1', 'replace').decode('latin-1')
+
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
 
     # -- Header --
     pdf.set_font("Helvetica", "B", 18)
-    pdf.cell(0, 10, test_name, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 10, _safe(test_name), new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_font("Helvetica", "B", 12)
     if passed:
@@ -148,7 +152,7 @@ def export_pdf(report_id: str) -> Path:
         pdf.set_font("Helvetica", "B", 10)
         pdf.cell(8, 7, f"#{i}")
         pdf.set_font("Helvetica", "", 10)
-        pdf.cell(0, 7, f"  {description}  [{action}]  {duration:.1f}s",
+        pdf.cell(0, 7, f"  {_safe(description)}  [{_safe(action)}]  {duration:.1f}s",
                  new_x="LMARGIN", new_y="NEXT")
 
         # Step details
@@ -158,7 +162,7 @@ def export_pdf(report_id: str) -> Path:
             pdf.set_text_color(136, 136, 136)
             pdf.cell(20, 5, "Target:")
             pdf.set_text_color(0, 0, 0)
-            pdf.cell(0, 5, target, new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(0, 5, _safe(target), new_x="LMARGIN", new_y="NEXT")
 
         coords = step.get("coordinates")
         if coords:
@@ -172,7 +176,14 @@ def export_pdf(report_id: str) -> Path:
         if error:
             pdf.set_text_color(239, 68, 68)
             pdf.set_font("Helvetica", "", 9)
-            pdf.multi_cell(0, 5, f"Error: {error}")
+            pdf.multi_cell(0, 5, f"Error: {_safe(error)}")
+            pdf.set_text_color(0, 0, 0)
+
+        model_response = step.get("model_response")
+        if model_response:
+            pdf.set_text_color(136, 136, 136)
+            pdf.set_font("Helvetica", "", 8)
+            pdf.multi_cell(0, 4, _safe(model_response))
             pdf.set_text_color(0, 0, 0)
 
         # Screenshot

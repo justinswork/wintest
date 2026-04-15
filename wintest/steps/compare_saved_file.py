@@ -136,17 +136,19 @@ def _compare_exact(step, file_path, baseline_path):
     except Exception as e:
         return StepResult(step=step, passed=False, error=f"Failed to read files: {e}")
 
+    info = f"Actual: {file_path}\nBaseline: {baseline_path}"
     if actual == expected:
         return StepResult(
             step=step, passed=True,
-            model_response=f"Files match ({len(actual)} bytes) — {os.path.basename(file_path)}",
+            model_response=f"Files match ({len(actual)} bytes)\n{info}",
         )
 
     min_len = min(len(actual), len(expected))
     diff_pos = next((i for i in range(min_len) if actual[i] != expected[i]), min_len)
-    error = f"Files differ at byte {diff_pos} — {os.path.basename(file_path)}"
+    error = f"Files differ at byte {diff_pos}"
     if len(actual) != len(expected):
         error += f" (actual: {len(actual)} bytes, expected: {len(expected)} bytes)"
+    error += f"\n{info}"
     return StepResult(step=step, passed=False, error=error)
 
 
@@ -158,14 +160,15 @@ def _compare_image(step, file_path, baseline_path):
         return StepResult(step=step, passed=False, error=f"Failed to open images: {e}")
 
     result = compare_regions(actual, expected, threshold=step.similarity_threshold)
+    info = f"Actual: {file_path}\nBaseline: {baseline_path}"
     if result["similar"]:
         return StepResult(
             step=step, passed=True,
-            model_response=f"Image similarity: {result['similarity']:.1%} — {os.path.basename(file_path)}",
+            model_response=f"Image similarity: {result['similarity']:.1%}\n{info}",
         )
     return StepResult(
         step=step, passed=False,
-        error=f"Image differs (similarity: {result['similarity']:.1%}) — {os.path.basename(file_path)}",
+        error=f"Image differs (similarity: {result['similarity']:.1%})\n{info}",
     )
 
 
