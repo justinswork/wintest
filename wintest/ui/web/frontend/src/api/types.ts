@@ -170,6 +170,43 @@ export interface RunTestSuiteResponse {
   total_tests: number;
 }
 
+export interface Pipeline {
+  name: string;
+  filename: string | null;
+  enabled: boolean;
+  target_type: 'test' | 'suite';
+  target_file: string;
+  schedule_days: string[];
+  schedule_time: string;
+}
+
+export interface PipelineListItem {
+  filename: string;
+  name: string;
+  enabled: boolean;
+  target_type: string;
+  target_file: string;
+  schedule_days: string[];
+  schedule_time: string;
+  last_run_at: string | null;
+  last_run_passed: boolean | null;
+}
+
+export interface SchedulerCurrentRun {
+  pipeline_filename: string;
+  pipeline_name: string;
+  target_type: string;
+  target_file: string;
+  started_at: string;
+}
+
+export interface SchedulerStatus {
+  running: boolean;
+  pid: number | null;
+  started_at: string | null;
+  current_run: SchedulerCurrentRun | null;
+}
+
 export function newStep(): Step {
   return {
     action: 'click',

@@ -66,6 +66,7 @@ def _ensure_dirs() -> None:
     reports_dir().mkdir(parents=True, exist_ok=True)
     baselines_dir().mkdir(parents=True, exist_ok=True)
     config_dir().mkdir(parents=True, exist_ok=True)
+    pipelines_dir().mkdir(parents=True, exist_ok=True)
 
 
 def is_configured() -> bool:
@@ -114,3 +115,7 @@ def reports_dir() -> Path:
 
 def baselines_dir() -> Path:
     return root() / "baselines"
+
+
+def pipelines_dir() -> Path:
+    return root() / "pipelines"

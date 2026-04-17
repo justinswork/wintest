@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Test, TestListItem, StepInfo, ValidationResult, ReportSummary, ReportData, RunResponse, RunStatus, TestSuite, TestSuiteListItem, RunTestSuiteResponse } from './types';
+import type { Test, TestListItem, StepInfo, ValidationResult, ReportSummary, ReportData, RunResponse, RunStatus, TestSuite, TestSuiteListItem, RunTestSuiteResponse, Pipeline, PipelineListItem, SchedulerStatus } from './types';
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -65,6 +65,18 @@ export const settingsApi = {
   setModel: (model_path: string) => api.put('/settings/model', { model_path }).then(r => r.data),
   getWorkspace: () => api.get('/settings/workspace').then(r => r.data),
   setWorkspace: (root: string) => api.put('/settings/workspace', { root }).then(r => r.data),
+};
+
+export const pipelineApi = {
+  list: () => api.get<PipelineListItem[]>('/pipelines').then(r => r.data),
+  get: (filepath: string) => api.get<Pipeline>(`/pipelines/file/${filepath}`).then(r => r.data),
+  create: (pipeline: Pipeline) => api.post<{ filename: string }>('/pipelines', pipeline).then(r => r.data),
+  update: (filepath: string, pipeline: Pipeline) => api.put(`/pipelines/file/${filepath}`, pipeline).then(r => r.data),
+  delete: (filepath: string) => api.delete(`/pipelines/file/${filepath}`).then(r => r.data),
+  setEnabled: (filepath: string, enabled: boolean) => api.patch(`/pipelines/file/${filepath}/enabled`, { enabled }).then(r => r.data),
+  schedulerStatus: () => api.get<SchedulerStatus>('/pipelines/scheduler-status').then(r => r.data),
+  startScheduler: () => api.post<{ started: boolean; reason?: string; pid?: number; command?: string[]; exit_code?: number; error?: string }>('/pipelines/scheduler/start').then(r => r.data),
+  stopScheduler: () => api.post<{ stopped: boolean; forced?: boolean; reason?: string; pid?: number }>('/pipelines/scheduler/stop').then(r => r.data),
 };
 
 export const reportApi = {

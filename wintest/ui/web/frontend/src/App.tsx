@@ -11,6 +11,8 @@ import { ReportList } from './pages/ReportList';
 import { ReportViewer } from './pages/ReportViewer';
 import { TestBuilder } from './pages/TestBuilder';
 import { Trends } from './pages/Trends';
+import { PipelineList } from './pages/PipelineList';
+import { PipelineEditor } from './pages/PipelineEditor';
 import { Settings } from './pages/Settings';
 import { Help } from './pages/Help';
 
@@ -31,6 +33,9 @@ const router = createBrowserRouter([
       { path: '/reports', element: <ReportList /> },
       { path: '/reports/:reportId', element: <ReportViewer /> },
       { path: '/trends', element: <Trends /> },
+      { path: '/pipelines', element: <PipelineList /> },
+      { path: '/pipelines/new', element: <PipelineEditor /> },
+      { path: '/pipelines/edit/*', element: <PipelineEditor /> },
       { path: '/settings', element: <Settings /> },
       { path: '/help', element: <Help /> },
     ],

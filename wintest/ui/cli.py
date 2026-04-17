@@ -276,3 +276,81 @@ def web(ctx, host, port):
     settings = ctx.obj["settings"]
     from .web.server import start_server
     start_server(settings, host=host, port=port)
+
+
+# -- wintest scheduler ----------------------------------------------
+
+@cli.command()
+@click.option("--install-startup", is_flag=True, help="Register to launch at Windows login and exit.")
+@click.option("--uninstall-startup", is_flag=True, help="Remove the Windows login entry and exit.")
+@click.option("--stop", is_flag=True, help="Stop a running scheduler and exit.")
+@click.option("--status", is_flag=True, help="Show scheduler status and exit.")
+@click.pass_context
+def scheduler(ctx, install_startup, uninstall_startup, stop, status):
+    """Run the pipeline scheduler (long-running background process)."""
+    from ..scheduler import pidfile
+    from ..scheduler.startup import install_startup as _install, uninstall_startup as _uninstall, is_startup_installed
+
+    if install_startup:
+        path = _install()
+        console.success(f"Installed startup launcher: {path}")
+        console.info("The scheduler will start automatically at next Windows login.")
+        return
+
+    if uninstall_startup:
+        removed = _uninstall()
+        if removed:
+            console.success("Removed startup launcher.")
+        else:
+            console.info("No startup launcher was installed.")
+        return
+
+    if status:
+        running, info = pidfile.is_scheduler_running()
+        if running and info:
+            console.info(f"Scheduler is running (pid={info.get('pid')}, started_at={info.get('started_at')}).")
+        else:
+            console.info("Scheduler is not running.")
+        return
+
+    if stop:
+        from ..ui.web.services.pipeline_service import stop_scheduler as _stop
+        result = _stop()
+        if result.get("stopped"):
+            if result.get("forced"):
+                console.warning(f"Scheduler (pid={result.get('pid')}) did not exit in time — force-killed.")
+            else:
+                console.success(f"Scheduler (pid={result.get('pid')}) stopped.")
+        elif result.get("reason") == "not_running":
+            console.info("Scheduler is not running.")
+        else:
+            console.error("Failed to stop scheduler.")
+            sys.exit(1)
+        return
+
+    if not workspace.is_configured():
+        console.error("No workspace configured. Set one in the web UI (Settings) or via --workspace.")
+        sys.exit(2)
+
+    running, info = pidfile.is_scheduler_running()
+    if running:
+        console.error(
+            f"Scheduler is already running (pid={info.get('pid') if info else '?'}). "
+            "Only one instance is allowed."
+        )
+        sys.exit(1)
+
+    settings = ctx.obj["settings"]
+
+    from ..scheduler.engine import SchedulerEngine
+    startup_status = "installed" if is_startup_installed() else "not installed"
+    console.header("\n  wintest scheduler\n")
+    console.info(f"Workspace: {workspace.root()}")
+    console.info(f"Startup registration: {startup_status}")
+    console.info("Press Ctrl+C to stop.\n")
+
+    engine = SchedulerEngine(settings)
+    try:
+        engine.run()
+    except KeyboardInterrupt:
+        engine.stop()

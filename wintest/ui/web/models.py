@@ -139,3 +139,44 @@ class RunTestSuiteResponse(BaseModel):
     status: str
     suite_name: str
     total_tests: int
+
+
+class PipelineModel(BaseModel):
+    name: str
+    filename: str | None = None
+    enabled: bool = True
+    target_type: str = "test"  # "test" or "suite"
+    target_file: str
+    schedule_days: list[str] = []
+    schedule_time: str = "00:00"
+
+
+class PipelineListItem(BaseModel):
+    filename: str
+    name: str
+    enabled: bool
+    target_type: str
+    target_file: str
+    schedule_days: list[str]
+    schedule_time: str
+    last_run_at: str | None = None
+    last_run_passed: bool | None = None
+
+
+class SchedulerCurrentRun(BaseModel):
+    pipeline_filename: str
+    pipeline_name: str
+    target_type: str
+    target_file: str
+    started_at: str
+
+
+class SchedulerStatus(BaseModel):
+    running: bool
+    pid: int | None = None
+    started_at: str | None = None
+    current_run: SchedulerCurrentRun | None = None
+
+
+class PipelineEnabledRequest(BaseModel):
+    enabled: bool
