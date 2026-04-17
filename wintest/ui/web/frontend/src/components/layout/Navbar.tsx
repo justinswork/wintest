@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, FlaskConical, FolderOpen, Hammer, Play, FileText, TrendingUp, Clock, Settings, HelpCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export function Sidebar() {
   return (
     <nav className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`}>
       <div className="sidebar-header">
-        {!collapsed && <div className="sidebar-brand">{t('nav.brand')}</div>}
+        {!collapsed && <Link to="/" className="sidebar-brand">{t('nav.brand')}</Link>}
         <button className="btn-icon sidebar-toggle" onClick={toggle} title={collapsed ? t('nav.expand') : t('nav.collapse')}>
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>

@@ -124,6 +124,11 @@ a:hover {
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
+  text-decoration: none;
+}
+
+.sidebar-brand:hover {
+  color: var(--primary);
 }
 
 .sidebar-toggle {
