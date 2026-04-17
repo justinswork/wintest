@@ -1215,6 +1215,7 @@ select.input {
 .trends-test-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
   cursor: pointer;
@@ -1225,16 +1226,72 @@ select.input {
   border-color: var(--primary);
 }
 
+.trends-test-card-slowdown {
+  border-left-color: var(--warning);
+}
+
+.trends-test-card-slowdown:hover {
+  border-color: var(--primary);
+  border-left-color: var(--warning);
+}
+
 .trends-test-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .trends-test-card-header h3 {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   margin: 0;
+}
+
+.trends-duration-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.trends-duration-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.trends-duration-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.trends-duration-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.trend-good {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.trend-warn {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.trend-bad {
+  color: var(--danger);
+  background: var(--danger-bg);
 }
 
 .trends-test-card-meta {
@@ -1353,6 +1410,21 @@ select.input {
 
 .trends-rate {
   font-weight: 600;
+}
+
+.trends-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.trends-control .input {
+  width: auto;
+  min-width: 10rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
 }
 
 .rate-good { color: #22c55e; }
