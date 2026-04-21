@@ -8,6 +8,8 @@ Record tests by clicking through your application, replay them to catch regressi
 
 Think of it as Selenium/Playwright, but for **any desktop application**.
 
+![wintest dashboard — today's scheduled pipelines and recent test results](docs/images/dashboard.png)
+
 ---
 
 ## What you can do
@@ -26,6 +28,8 @@ Think of it as Selenium/Playwright, but for **any desktop application**.
 2. **Replay.** Run the test and wintest replays your clicks at the captured coordinates, types the recorded text, and checks the assertions.
 3. **Report.** Each step produces a screenshot and a pass/fail result. Failures show exactly what went wrong, including file diffs and screenshot diffs.
 4. **Schedule.** Create a pipeline to run a test or suite on a recurring schedule (e.g., nightly at 10pm). A background scheduler process triggers runs automatically.
+
+![Test Builder — pick-on-screenshot recording, step list, and live app preview](docs/images/test_builder.png)
 
 ---
 
