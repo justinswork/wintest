@@ -168,7 +168,7 @@ You rarely write YAML by hand — the Test Builder and Test Editor generate it f
 - Workspace-based storage: tests, suites, pipelines, baselines, and reports all live under a directory the user chooses
 - Scheduler runs as a separate background process using the same test-runner code as the CLI and web UI
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 
 ---
 

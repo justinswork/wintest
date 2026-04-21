@@ -5,9 +5,27 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wintest"
 version = "0.1.0"
-description = "AI-powered Windows UI testing tool"
+description = "Automated UI testing for Windows desktop applications."
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Justin King", email = "work.justinking@gmail.com" },
+]
+keywords = ["testing", "ui-testing", "windows", "desktop", "automation", "gui-testing"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+]
 dependencies = [
     "torch>=2.6.0",
     "torchvision>=0.21.0",
@@ -27,6 +45,11 @@ dependencies = [
     "websockets>=14.0",
     "fpdf2>=2.7.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/justinswork/WinTest"
+Repository = "https://github.com/justinswork/WinTest"
+Issues = "https://github.com/justinswork/WinTest/issues"
 
 [project.scripts]
 wintest = "wintest.ui.cli:cli"

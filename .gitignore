@@ -213,3 +213,6 @@ reports/
 node_modules/
 wintest/ui/web/frontend/dist/
 /.claude/settings.local.json
+
+# Internal notes — not for public distribution
+/devnotes/
