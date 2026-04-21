@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wintest"
-version = "0.1.0"
+version = "0.1.0b1"
 description = "Automated UI testing for Windows desktop applications."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,14 +27,8 @@ classifiers = [
     "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = [
-    "torch>=2.6.0",
-    "torchvision>=0.21.0",
-    "transformers>=4.50.0",
     "Pillow>=12.0.0",
     "PyAutoGUI>=0.9.54",
-    "bitsandbytes>=0.49.0",
-    "qwen-vl-utils>=0.0.10",
-    "accelerate>=0.30.0",
     "PyYAML>=6.0",
     "Jinja2>=3.1.0",
     "click>=8.1.0",
@@ -55,6 +49,17 @@ Issues = "https://github.com/justinswork/WinTest/issues"
 wintest = "wintest.ui.cli:cli"
 
 [project.optional-dependencies]
+# AI vision model support for targeting UI elements by natural-language description.
+# CUDA-enabled torch must also be installed separately (see README) — torch on PyPI
+# is CPU-only, and bitsandbytes requires CUDA.
+ai = [
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
+    "transformers>=4.50.0",
+    "bitsandbytes>=0.49.0",
+    "qwen-vl-utils>=0.0.10",
+    "accelerate>=0.30.0",
+]
 test = [
     "pytest>=8.0",
     "httpx>=0.27",

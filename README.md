@@ -73,17 +73,37 @@ The model runs in 4-bit quantization (NF4) to fit within consumer GPU memory. An
 
 ### 1. Install wintest
 
+wintest is published on PyPI as a pre-release (beta):
+
+```bash
+pip install --pre wintest
+```
+
+Or from a local checkout:
+
 ```bash
 pip install -e .
 ```
 
-### 2. (Optional) Install PyTorch with CUDA for AI features
+The base install covers coordinate-based testing (the default and recommended workflow) and has no AI dependencies.
 
-Only needed if you plan to use AI-driven element targeting. Coordinate-based tests don't require it.
+### 2. (Optional) Install AI vision support
+
+Only needed if you plan to use AI-driven element targeting. Coordinate-based tests don't require any of this.
+
+First install CUDA-enabled PyTorch (the PyPI torch wheel is CPU-only, and `bitsandbytes` requires CUDA):
 
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 ```
+
+Then install the AI extras:
+
+```bash
+pip install --pre 'wintest[ai]'
+```
+
+Or, from a local checkout: `pip install -e '.[ai]'`.
 
 ### 3. Build the web UI frontend
 
