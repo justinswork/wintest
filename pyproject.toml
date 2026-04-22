@@ -38,6 +38,7 @@ dependencies = [
     "python-multipart>=0.0.18",
     "websockets>=14.0",
     "fpdf2>=2.7.0",
+    "numpy>=1.26",
 ]
 
 [project.urls]
@@ -71,3 +72,7 @@ filterwarnings = ["ignore::pytest.PytestCollectionWarning"]
 
 [tool.setuptools.packages.find]
 include = ["wintest*"]
+exclude = ["wintest.ui.web.frontend*"]
+
+[tool.setuptools.package-data]
+"wintest.ui.web" = ["frontend/dist/**/*"]

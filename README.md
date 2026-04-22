@@ -105,7 +105,9 @@ pip install --pre 'wintest[ai]'
 
 Or, from a local checkout: `pip install -e '.[ai]'`.
 
-### 3. Build the web UI frontend
+### 3. Build the web UI frontend (source installs only)
+
+Skip this step if you installed via `pip install --pre wintest` — the published wheel ships the built SPA. You only need it after `pip install -e .` from a checkout, since the frontend `dist/` is gitignored.
 
 Requires [Node.js](https://nodejs.org/) (LTS recommended).
 
