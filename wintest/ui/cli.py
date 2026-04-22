@@ -17,6 +17,7 @@ from . import console
 
 
 @click.group()
+@click.version_option(package_name="wintest", prog_name="wintest")
 @click.option(
     "--config", "-c",
     default=None,
