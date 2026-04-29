@@ -670,7 +670,7 @@ export function TestBuilder() {
               <option value="middle_click">{t('builder.clickMiddle')}</option>
             </select>
             <button
-              className="btn btn-secondary"
+              className="btn btn-primary"
               onClick={handleStartPick}
               disabled={executing || pickMode}
             >
@@ -844,7 +844,7 @@ export function TestBuilder() {
         return (
           <>
             <button
-              className="btn btn-secondary"
+              className="btn btn-primary"
               onClick={handleStartRegionSelect}
               disabled={executing || regionMode}
             >
@@ -995,6 +995,13 @@ export function TestBuilder() {
             disabled={executing}
           />
           {(() => {
+            // Steps where the entire add flow happens via a picker on the
+            // screenshot (coordinate click, verify_screenshot region) — the
+            // Add buttons aren't applicable.
+            if (action === 'click' || action === 'verify_screenshot') {
+              return null;
+            }
+
             const interactive = ['click_element', 'type', 'launch_application'].includes(action);
             const primaryAction = interactive ? handleExecute : handleSaveStep;
             const primaryLabel = interactive
@@ -1009,9 +1016,6 @@ export function TestBuilder() {
             // this action. Avoids triggering AI model loads for empty steps.
             const formReady = (() => {
               switch (action) {
-                // Coordinate clicks come from the screenshot pick flow, not
-                // the form — the Add buttons are never the right control.
-                case 'click': return false;
                 case 'click_element': return target.trim().length > 0;
                 case 'verify': return target.trim().length > 0;
                 case 'type': return text.length > 0;
