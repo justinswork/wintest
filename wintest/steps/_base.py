@@ -23,6 +23,7 @@ class StepDefinition:
     validate: Callable  # (step, step_num) -> list[str]
     execute: Callable  # (step, context) -> StepResult
     is_runner_step: bool = False  # True = runner handles, not agent
+    requires_vision: bool = False  # True = needs the AI vision model
     label: Optional[str] = None  # Human-readable name; defaults to title-cased name
 
     @property

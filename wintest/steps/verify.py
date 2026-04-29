@@ -21,4 +21,5 @@ definition = StepDefinition(
     ],
     validate=validate,
     execute=execute,
+    requires_vision=True,
 )

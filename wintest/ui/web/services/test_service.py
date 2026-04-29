@@ -210,6 +210,7 @@ def get_step_types() -> list[StepInfo]:
             required_fields=required,
             fields=fields,
             is_runner_step=defn.is_runner_step,
+            requires_vision=defn.requires_vision,
         ))
     return step_types
 

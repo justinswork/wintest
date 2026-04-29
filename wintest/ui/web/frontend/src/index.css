@@ -2145,6 +2145,10 @@ select.input {
   border-bottom: 1px solid var(--border);
 }
 
+.help-section > h3.help-ai-heading {
+  margin-top: 2rem;
+}
+
 .step-doc-card {
   margin-bottom: 1rem;
   scroll-margin-top: 5rem;

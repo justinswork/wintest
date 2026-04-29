@@ -8,13 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 def step_needs_vision(step) -> bool:
-    """Return True if the step requires the AI vision model to execute."""
-    if step.action in ("click", "verify"):
-        # Coordinate-based clicks/verifies don't need vision
-        if step.click_x is not None and step.click_y is not None:
-            return False
-        return True
-    return False
+    """Return True if the step requires the AI vision model to execute.
+
+    Reads the StepDefinition.requires_vision flag from the step registry, so
+    new AI-using step types are picked up automatically.
+    """
+    from ...steps import registry
+    defn = registry.get(step.action)
+    return defn is not None and defn.requires_vision
 
 
 def test_needs_vision(test) -> bool:

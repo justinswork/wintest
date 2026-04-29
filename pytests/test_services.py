@@ -139,7 +139,7 @@ class TestTestServiceCrud:
 class TestTestServiceValidation:
     def test_valid_file(self, tests_dir):
         (tests_dir / "ok.yaml").write_text(
-            "name: OK\nsteps:\n  - action: click\n    target: OK\n"
+            "name: OK\nsteps:\n  - action: click_element\n    target: OK\n"
         )
         result = test_service.validate_test_file("ok.yaml")
         assert result.valid is True
@@ -147,7 +147,7 @@ class TestTestServiceValidation:
 
     def test_invalid_file(self, tests_dir):
         (tests_dir / "bad.yaml").write_text(
-            "name: Bad\nsteps:\n  - action: click\n"  # missing target
+            "name: Bad\nsteps:\n  - action: click_element\n"  # missing target
         )
         result = test_service.validate_test_file("bad.yaml")
         assert result.valid is False
@@ -166,9 +166,25 @@ class TestTestServiceStepTypes:
         types = test_service.get_step_types()
         click_info = next(t for t in types if t.name == "click")
         field_names = [f.name for f in click_info.fields]
-        assert "target" in field_names
         assert "click_x" in field_names
         assert "click_y" in field_names
+
+    def test_click_element_fields(self):
+        types = test_service.get_step_types()
+        click_element_info = next(t for t in types if t.name == "click_element")
+        field_names = [f.name for f in click_element_info.fields]
+        assert "target" in field_names
+        assert click_element_info.requires_vision is True
+
+    def test_verify_requires_vision(self):
+        types = test_service.get_step_types()
+        verify_info = next(t for t in types if t.name == "verify")
+        assert verify_info.requires_vision is True
+
+    def test_click_does_not_require_vision(self):
+        types = test_service.get_step_types()
+        click_info = next(t for t in types if t.name == "click")
+        assert click_info.requires_vision is False
 
 
 # --- test_suite_service ---

@@ -114,6 +114,7 @@ class StepInfo(BaseModel):
     required_fields: list[str]
     fields: list[FieldInfo] = []
     is_runner_step: bool = False
+    requires_vision: bool = False
 
 
 class TestSuiteModel(BaseModel):

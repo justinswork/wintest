@@ -320,6 +320,11 @@ export function TestBuilder() {
     const step: Record<string, unknown> = { action, description: description || undefined };
     switch (action) {
       case 'click':
+        // Coordinate-based click — coords are set by the screenshot pick flow,
+        // not from the input bar.
+        step.click_type = clickType;
+        break;
+      case 'click_element':
         step.target = target;
         step.click_type = clickType;
         break;
@@ -671,7 +676,23 @@ export function TestBuilder() {
             >
               {t('builder.pickOnScreenshot')}
             </button>
-            <span className="text-muted">{t('builder.or')}</span>
+          </>
+        );
+      case 'click_element':
+        return (
+          <>
+            <select
+              className="input"
+              value={clickType}
+              onChange={e => setClickType(e.target.value)}
+              disabled={executing}
+              style={{ width: 'auto' }}
+            >
+              <option value="click">{t('builder.clickLeft')}</option>
+              <option value="double_click">{t('builder.clickDouble')}</option>
+              <option value="right_click">{t('builder.clickRight')}</option>
+              <option value="middle_click">{t('builder.clickMiddle')}</option>
+            </select>
             <input
               ref={inputRef}
               className="input flex-1"
@@ -957,9 +978,13 @@ export function TestBuilder() {
             style={{ width: 200 }}
             disabled={executing}
           >
-            {stepTypes.map(st => (
-              <option key={st.name} value={st.name}>{st.label}</option>
-            ))}
+            {[...stepTypes]
+              .sort((a, b) => Number(a.requires_vision) - Number(b.requires_vision))
+              .map(st => (
+                <option key={st.name} value={st.name}>
+                  {st.requires_vision ? `✨ ${st.label}` : st.label}
+                </option>
+              ))}
           </select>
           {renderFieldsForAction()}
           <input
@@ -970,7 +995,7 @@ export function TestBuilder() {
             disabled={executing}
           />
           {(() => {
-            const interactive = ['click', 'type', 'launch_application'].includes(action);
+            const interactive = ['click_element', 'type', 'launch_application'].includes(action);
             const primaryAction = interactive ? handleExecute : handleSaveStep;
             const primaryLabel = interactive
               ? (executing ? t('builder.executing') : t('builder.addAndRun'))
@@ -984,7 +1009,10 @@ export function TestBuilder() {
             // this action. Avoids triggering AI model loads for empty steps.
             const formReady = (() => {
               switch (action) {
-                case 'click': return target.trim().length > 0;
+                // Coordinate clicks come from the screenshot pick flow, not
+                // the form — the Add buttons are never the right control.
+                case 'click': return false;
+                case 'click_element': return target.trim().length > 0;
                 case 'verify': return target.trim().length > 0;
                 case 'type': return text.length > 0;
                 case 'press_key': return key.trim().length > 0;
@@ -1053,7 +1081,8 @@ export function TestBuilder() {
                     <span className="step-num">#{i + 1}</span>
                     <span className="step-label">
                       <strong>
-                        {s.step.action === 'click' && s.step.click_type && s.step.click_type !== 'click'
+                        {(s.step.action === 'click' || s.step.action === 'click_element')
+                            && s.step.click_type && s.step.click_type !== 'click'
                           ? s.step.click_type
                           : s.step.action}
                       </strong>
@@ -1248,7 +1277,8 @@ function StepDetail({ step, index, onChange, onCaptureBaseline }: {
       <div className="builder-detail-header">
         <strong>
           #{index + 1}{' '}
-          {s.action === 'click' && s.click_type && s.click_type !== 'click'
+          {(s.action === 'click' || s.action === 'click_element')
+              && s.click_type && s.click_type !== 'click'
             ? s.click_type
             : s.action}
         </strong>
@@ -1267,7 +1297,7 @@ function StepDetail({ step, index, onChange, onCaptureBaseline }: {
         />
       </div>
 
-      {(s.action === 'click' || s.action === 'verify') && (
+      {(s.action === 'click_element' || s.action === 'verify') && (
         <div className="builder-detail-row">
           <span className="builder-detail-label">{t('builder.detail.target')}</span>
           <input

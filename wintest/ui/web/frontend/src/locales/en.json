@@ -220,6 +220,8 @@
   "help.title": "Help & Documentation",
   "help.overview": "Overview",
   "help.stepTypes": "Step Types",
+  "help.aiStepsHeading": "AI-Powered Steps",
+  "help.aiStepsDescription": "The following steps require a local AI vision model to be loaded. They are slower than coordinate-based steps and may not work reliably depending on the model and the UI being tested. Prefer coordinate-based steps when the layout is stable.",
   "help.commonParams": "Common Step Parameters",
   "help.requiredLabel": "Required",
   "help.optionalLabel": "Optional",

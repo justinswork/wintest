@@ -7,7 +7,7 @@ from wintest.tasks.schema import Step, TestDefinition
 from wintest.tasks.validator import validate_test
 
 EXPECTED_ACTIONS = {
-    "click", "compare_saved_file", "hotkey",
+    "click", "click_element", "compare_saved_file", "hotkey",
     "launch_application", "loop", "press_key", "scroll",
     "set_variable", "type", "verify", "verify_screenshot", "wait",
 }
@@ -50,11 +50,22 @@ class TestRegistry:
 
 
 class TestClickValidation:
+    def test_valid_with_coords(self):
+        step = Step(action="click", click_x=0.5, click_y=0.5)
+        assert registry.get("click").validate(step, 1) == []
+
+    def test_missing_coords(self):
+        issues = registry.get("click").validate(Step(action="click"), 1)
+        assert len(issues) == 1
+        assert "click_x" in issues[0]
+
+
+class TestClickElementValidation:
     def test_valid(self):
-        assert registry.get("click").validate(Step(action="click", target="OK"), 1) == []
+        assert registry.get("click_element").validate(Step(action="click_element", target="OK"), 1) == []
 
     def test_missing_target(self):
-        issues = registry.get("click").validate(Step(action="click"), 1)
+        issues = registry.get("click_element").validate(Step(action="click_element"), 1)
         assert len(issues) == 1
         assert "target" in issues[0].lower()
 
@@ -216,7 +227,10 @@ class TestValidateTest:
     def test_valid_test(self):
         test = TestDefinition(
             name="Valid",
-            steps=[Step(action="click", target="OK"), Step(action="type", text="hi")],
+            steps=[
+                Step(action="click", click_x=0.5, click_y=0.5),
+                Step(action="type", text="hi"),
+            ],
         )
         assert validate_test(test) == []
 

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { stepDocList } from '../docs';
 import type { StepDoc, StepParam } from '../docs';
+import { useTestStore } from '../stores/testStore';
 
 const COMMON_PARAMS = [
   {
@@ -27,14 +28,16 @@ const COMMON_PARAMS = [
   },
 ];
 
-function StepCard({ doc }: { doc: StepDoc }) {
+function StepCard({ doc, requiresVision }: { doc: StepDoc; requiresVision?: boolean }) {
   const { t } = useTranslation();
 
   return (
     <div className="step-doc-card card" id={`step-${doc.name}`}>
       <h3>
         <code>{doc.name}</code>
-        <span className="step-doc-title">{doc.title}</span>
+        <span className="step-doc-title">
+          {requiresVision ? `✨ ${doc.title}` : doc.title}
+        </span>
       </h3>
       <p className="step-doc-summary">{doc.summary}</p>
       <p className="step-doc-description">{doc.description}</p>
@@ -74,6 +77,11 @@ function StepCard({ doc }: { doc: StepDoc }) {
 export function Help() {
   const { t } = useTranslation();
   const { hash } = useLocation();
+  const { stepTypes, fetchStepTypes } = useTestStore();
+
+  useEffect(() => {
+    if (stepTypes.length === 0) fetchStepTypes();
+  }, [stepTypes.length, fetchStepTypes]);
 
   useEffect(() => {
     if (hash) {
@@ -83,6 +91,12 @@ export function Help() {
       }
     }
   }, [hash]);
+
+  const requiresVisionByName = new Map(
+    stepTypes.map(s => [s.name, s.requires_vision]),
+  );
+  const standardDocs = stepDocList.filter(d => !requiresVisionByName.get(d.name));
+  const aiDocs = stepDocList.filter(d => requiresVisionByName.get(d.name));
 
   return (
     <div className="help-page">
@@ -149,9 +163,19 @@ export function Help() {
 
       <section className="help-section">
         <h3>{t('help.stepTypes')}</h3>
-        {stepDocList.map(doc => (
+        {standardDocs.map(doc => (
           <StepCard key={doc.name} doc={doc} />
         ))}
+
+        {aiDocs.length > 0 && (
+          <>
+            <h3 className="help-ai-heading">✨ {t('help.aiStepsHeading')}</h3>
+            <p className="text-muted">{t('help.aiStepsDescription')}</p>
+            {aiDocs.map(doc => (
+              <StepCard key={doc.name} doc={doc} requiresVision />
+            ))}
+          </>
+        )}
       </section>
 
       <section className="help-section">
