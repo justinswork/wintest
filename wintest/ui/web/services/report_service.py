@@ -186,12 +186,51 @@ def export_pdf(report_id: str) -> Path:
             pdf.multi_cell(0, 4, _safe(model_response))
             pdf.set_text_color(0, 0, 0)
 
-        # Screenshot
+        # Screenshots — for screenshot-compare steps, render baseline + actual
+        # side by side and include the diff below; otherwise show the single
+        # step screenshot.
+        actual_path = step.get("actual_screenshot_path")
+        baseline_path = step.get("baseline_screenshot_path")
         screenshot_path = step.get("screenshot_path")
-        if screenshot_path:
+
+        actual_exists = actual_path and Path(actual_path).exists()
+        baseline_exists = baseline_path and Path(baseline_path).exists()
+
+        if actual_exists and baseline_exists:
+            page_w = pdf.w - 30  # 15px margin both sides
+            pane_w = (page_w - 4) / 2  # 4px gutter between panes
+            pdf.ln(2)
+            y_top = pdf.get_y()
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.set_text_color(136, 136, 136)
+            pdf.set_xy(15, y_top)
+            pdf.cell(pane_w, 4, "BASELINE")
+            pdf.set_xy(15 + pane_w + 4, y_top)
+            pdf.cell(pane_w, 4, "ACTUAL", new_x="LMARGIN", new_y="NEXT")
+            pdf.set_text_color(0, 0, 0)
+            y_imgs = pdf.get_y()
+            pdf.image(str(baseline_path), x=15, y=y_imgs, w=pane_w)
+            pdf.image(str(actual_path), x=15 + pane_w + 4, y=y_imgs, w=pane_w)
+            # Move cursor below the taller of the two images
+            try:
+                from PIL import Image as _PILImage
+                with _PILImage.open(baseline_path) as bi, _PILImage.open(actual_path) as ai:
+                    h_baseline = pane_w * bi.size[1] / bi.size[0]
+                    h_actual = pane_w * ai.size[1] / ai.size[0]
+                pdf.set_y(y_imgs + max(h_baseline, h_actual) + 2)
+            except Exception:
+                pdf.ln(60)
+
+            if screenshot_path and Path(screenshot_path).exists() \
+                    and screenshot_path != actual_path:
+                pdf.set_font("Helvetica", "B", 8)
+                pdf.set_text_color(136, 136, 136)
+                pdf.cell(0, 4, "DIFF OVERLAY", new_x="LMARGIN", new_y="NEXT")
+                pdf.set_text_color(0, 0, 0)
+                pdf.image(str(screenshot_path), x=15, w=page_w)
+        elif screenshot_path:
             p = Path(screenshot_path)
             if p.exists():
-                # Fit screenshot to page width with some margin
                 img_width = pdf.w - 30
                 pdf.ln(2)
                 pdf.image(str(p), x=15, w=img_width)

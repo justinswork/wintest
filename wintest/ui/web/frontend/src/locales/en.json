@@ -143,6 +143,12 @@
   "reportViewer.exportPdf": "Export PDF",
   "reportViewer.loading": "Loading result...",
 
+  "compare.sideBySide": "Side by side",
+  "compare.overlay": "Diff overlay",
+  "compare.overlayUnavailable": "No diff to overlay — screenshots match",
+  "compare.actual": "Actual",
+  "compare.baseline": "Baseline",
+
   "settings.title": "Settings",
   "settings.workspace": "Workspace",
   "settings.workspaceDescription": "All tests, suites, results, and configuration are stored in the workspace directory.",

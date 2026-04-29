@@ -57,36 +57,37 @@ def execute(step, runner_ctx):
 
     # Always save screenshots to report dir when available
     screenshot_path = None
+    actual_path = None
+    baseline_copy_path = None
     if agent.report_dir:
         screenshots_dir = os.path.join(agent.report_dir, "screenshots")
         os.makedirs(screenshots_dir, exist_ok=True)
 
-        # Save the actual cropped region
         actual_path = os.path.join(screenshots_dir, f"actual_{step.baseline_id}.png")
         actual_crop.save(actual_path)
 
-        # Save the baseline for reference
         baseline_copy_path = os.path.join(screenshots_dir, f"baseline_{step.baseline_id}.png")
         baseline.save(baseline_copy_path)
 
-        if result["diff_image"]:
-            diff_path = os.path.join(screenshots_dir, f"diff_{step.baseline_id}.png")
-            result["diff_image"].save(diff_path)
-            screenshot_path = diff_path
-        else:
-            screenshot_path = actual_path
+        diff_path = os.path.join(screenshots_dir, f"diff_{step.baseline_id}.png")
+        result["diff_image"].save(diff_path)
+        screenshot_path = diff_path
 
     if result["similar"]:
         return StepResult(
             step=step, passed=True,
             model_response=f"Similarity: {result['similarity']:.1%}",
             screenshot_path=screenshot_path,
+            actual_screenshot_path=actual_path,
+            baseline_screenshot_path=baseline_copy_path,
         )
     else:
         return StepResult(
             step=step, passed=False,
             error=f"Screenshot differs from baseline (similarity: {result['similarity']:.1%}, threshold: {step.similarity_threshold:.1%})",
-            screenshot_path=diff_path,
+            screenshot_path=screenshot_path,
+            actual_screenshot_path=actual_path,
+            baseline_screenshot_path=baseline_copy_path,
         )
 
 

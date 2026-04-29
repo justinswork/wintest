@@ -113,6 +113,28 @@
             border: 1px solid #e5e5e5;
             border-radius: 4px;
         }
+
+        /* Screenshot compare (verify_screenshot steps) */
+        .step-compare { padding: 0 20px 16px; }
+        .step-compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .step-compare figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+        .step-compare figcaption {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .step-compare img {
+            max-width: 100%;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+        }
+        .step-compare-diff { margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -176,7 +198,26 @@
                 </div>
                 {% endif %}
             </div>
-            {% if step.screenshot %}
+            {% if step.actual_screenshot and step.baseline_screenshot %}
+            <div class="step-compare">
+                <div class="step-compare-grid">
+                    <figure>
+                        <figcaption>Baseline</figcaption>
+                        <img src="{{ step.baseline_screenshot }}" alt="Step {{ step.number }} baseline">
+                    </figure>
+                    <figure>
+                        <figcaption>Actual</figcaption>
+                        <img src="{{ step.actual_screenshot }}" alt="Step {{ step.number }} actual">
+                    </figure>
+                </div>
+                {% if step.screenshot and step.screenshot != step.actual_screenshot %}
+                <figure class="step-compare-diff">
+                    <figcaption>Diff overlay</figcaption>
+                    <img src="{{ step.screenshot }}" alt="Step {{ step.number }} diff overlay">
+                </figure>
+                {% endif %}
+            </div>
+            {% elif step.screenshot %}
             <div class="step-screenshot">
                 <img src="{{ step.screenshot }}" alt="Step {{ step.number }} screenshot">
             </div>

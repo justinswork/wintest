@@ -30,13 +30,13 @@ def compare_regions(actual: Image.Image, baseline: Image.Image,
     mean_diff = float(np.mean(diff))
     similarity = 1.0 - mean_diff
 
-    # Generate diff image — highlight differences in red
-    diff_image = None
-    if similarity < threshold:
-        diff_mask = np.max(diff, axis=2) > 0.1  # pixels that differ by >10%
-        diff_vis = np.array(actual.convert("RGB"))
-        diff_vis[diff_mask] = [255, 0, 0]  # red overlay on changed pixels
-        diff_image = Image.fromarray(diff_vis)
+    # Generate diff image — highlight differences in red. Produced for both
+    # passing and failing comparisons so the UI can always offer an overlay
+    # view; for an exact match the image is just the actual (no red pixels).
+    diff_mask = np.max(diff, axis=2) > 0.1  # pixels that differ by >10%
+    diff_vis = np.array(actual.convert("RGB"))
+    diff_vis[diff_mask] = [255, 0, 0]
+    diff_image = Image.fromarray(diff_vis)
 
     return {
         "similar": similarity >= threshold,

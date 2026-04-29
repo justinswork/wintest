@@ -1051,6 +1051,38 @@ select.input {
   border: 1px solid var(--border);
 }
 
+.screenshot-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.screenshot-compare-toolbar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.screenshot-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.screenshot-compare-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.screenshot-compare-pane figcaption {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
 .screenshot-placeholder {
   display: flex;
   align-items: center;

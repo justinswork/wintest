@@ -40,6 +40,8 @@ class ReportGenerator:
                 "coordinates": list(r.coordinates) if r.coordinates else None,
                 "model_response": r.model_response,
                 "screenshot_path": r.screenshot_path,
+                "actual_screenshot_path": r.actual_screenshot_path,
+                "baseline_screenshot_path": r.baseline_screenshot_path,
             }
             data["steps"].append(step_data)
 
@@ -55,15 +57,11 @@ class ReportGenerator:
         env = Environment(loader=FileSystemLoader(str(template_dir)))
         template = env.get_template("report.html")
 
+        def _rel(path):
+            return os.path.relpath(path, self.report_dir) if path else None
+
         steps = []
         for i, r in enumerate(result.step_results, 1):
-            # Make screenshot path relative to report dir for the HTML
-            screenshot_rel = None
-            if r.screenshot_path:
-                screenshot_rel = os.path.relpath(
-                    r.screenshot_path, self.report_dir
-                )
-
             steps.append({
                 "number": i,
                 "description": r.step.description or r.step.action,
@@ -74,7 +72,9 @@ class ReportGenerator:
                 "error": r.error,
                 "coordinates": r.coordinates,
                 "model_response": r.model_response,
-                "screenshot": screenshot_rel,
+                "screenshot": _rel(r.screenshot_path),
+                "actual_screenshot": _rel(r.actual_screenshot_path),
+                "baseline_screenshot": _rel(r.baseline_screenshot_path),
             })
 
         html = template.render(

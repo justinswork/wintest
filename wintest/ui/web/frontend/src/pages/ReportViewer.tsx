@@ -5,8 +5,14 @@ import { FileDown } from 'lucide-react';
 import { reportApi } from '../api/client';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { ScreenshotCompare } from '../components/common/ScreenshotCompare';
 import { showToast } from '../components/common/Toast';
 import type { ReportData } from '../api/types';
+
+function filename(path: string | null): string | null {
+  if (!path) return null;
+  return path.split(/[/\\]/).pop() ?? null;
+}
 
 export function ReportViewer() {
   const { t } = useTranslation();
@@ -58,9 +64,10 @@ export function ReportViewer() {
       <div className="report-steps">
         {report.steps.map((step_item, i) => {
           const isExpanded = expandedStep === i;
-          const screenshotFile = step_item.screenshot_path
-            ? step_item.screenshot_path.split(/[/\\]/).pop()
-            : null;
+          const screenshotFile = filename(step_item.screenshot_path);
+          const actualFile = filename(step_item.actual_screenshot_path);
+          const baselineFile = filename(step_item.baseline_screenshot_path);
+          const showCompare = Boolean(actualFile && baselineFile && reportId);
 
           return (
             <div
@@ -76,13 +83,25 @@ export function ReportViewer() {
               </div>
 
               {isExpanded && (
-                <div className="step-detail">
+                <div className="step-detail" onClick={e => e.stopPropagation()}>
                   <p><strong>{t('reportViewer.step')}</strong> {step_item.action}</p>
                   {step_item.target && <p><strong>{t('reportViewer.target')}</strong> {step_item.target}</p>}
                   {step_item.error && <p className="step-error"><strong>{t('reportViewer.error')}</strong> {step_item.error}</p>}
                   {step_item.coordinates && <p><strong>{t('reportViewer.coordinates')}</strong> [{step_item.coordinates.join(', ')}]</p>}
                   {step_item.model_response && <p><strong>{t('reportViewer.modelResponse')}</strong> {step_item.model_response}</p>}
-                  {screenshotFile && reportId && (
+                  {showCompare && actualFile && baselineFile && reportId ? (
+                    <ScreenshotCompare
+                      actualUrl={reportApi.screenshotUrl(reportId, actualFile)}
+                      baselineUrl={reportApi.screenshotUrl(reportId, baselineFile)}
+                      overlayUrl={
+                        screenshotFile && screenshotFile !== actualFile
+                          ? reportApi.screenshotUrl(reportId, screenshotFile)
+                          : null
+                      }
+                      alt={t('reportViewer.stepScreenshot', { num: i + 1 })}
+                      initialMode={step_item.passed ? 'side-by-side' : 'overlay'}
+                    />
+                  ) : screenshotFile && reportId && (
                     <img
                       src={reportApi.screenshotUrl(reportId, screenshotFile)}
                       alt={t('reportViewer.stepScreenshot', { num: i + 1 })}

@@ -91,6 +91,8 @@ export interface ReportStep {
   coordinates: number[] | null;
   model_response: string | null;
   screenshot_path: string | null;
+  actual_screenshot_path: string | null;
+  baseline_screenshot_path: string | null;
 }
 
 export interface RunResponse {

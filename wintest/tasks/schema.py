@@ -50,6 +50,8 @@ class StepResult:
     model_response: Optional[str] = None
     screenshot_path: Optional[str] = None
     duration_seconds: float = 0.0
+    actual_screenshot_path: Optional[str] = None
+    baseline_screenshot_path: Optional[str] = None
 
 
 @dataclass
