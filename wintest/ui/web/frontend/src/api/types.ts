@@ -51,6 +51,7 @@ export interface FieldInfo {
 
 export interface StepInfo {
   name: string;
+  label: string;
   description: string;
   required_fields: string[];
   fields: FieldInfo[];

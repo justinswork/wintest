@@ -1,7 +1,7 @@
 """Base types for step definitions."""
 
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, Optional
 
 
 @dataclass
@@ -23,3 +23,10 @@ class StepDefinition:
     validate: Callable  # (step, step_num) -> list[str]
     execute: Callable  # (step, context) -> StepResult
     is_runner_step: bool = False  # True = runner handles, not agent
+    label: Optional[str] = None  # Human-readable name; defaults to title-cased name
+
+    @property
+    def display_label(self) -> str:
+        if self.label:
+            return self.label
+        return self.name.replace("_", " ").title()

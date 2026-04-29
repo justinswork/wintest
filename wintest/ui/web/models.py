@@ -109,6 +109,7 @@ class FieldInfo(BaseModel):
 
 class StepInfo(BaseModel):
     name: str
+    label: str
     description: str
     required_fields: list[str]
     fields: list[FieldInfo] = []

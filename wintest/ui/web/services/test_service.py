@@ -205,6 +205,7 @@ def get_step_types() -> list[StepInfo]:
         ]
         step_types.append(StepInfo(
             name=defn.name,
+            label=defn.display_label,
             description=defn.description,
             required_fields=required,
             fields=fields,

@@ -953,11 +953,11 @@ export function TestBuilder() {
               setRegionRect(null);
               regionStartRef.current = null;
             }}
-            style={{ width: 160 }}
+            style={{ width: 200 }}
             disabled={executing}
           >
             {stepTypes.map(st => (
-              <option key={st.name} value={st.name}>{st.name}</option>
+              <option key={st.name} value={st.name}>{st.label}</option>
             ))}
           </select>
           {renderFieldsForAction()}

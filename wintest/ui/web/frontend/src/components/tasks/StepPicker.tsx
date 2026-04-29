@@ -9,9 +9,9 @@ export function StepPicker({ value, onChange }: Props) {
   const { stepTypes } = useTestStore();
 
   return (
-    <select value={value} onChange={e => onChange(e.target.value)} className="input">
+    <select value={value} onChange={e => onChange(e.target.value)} className="input" style={{ width: 200 }}>
       {stepTypes.map(s => (
-        <option key={s.name} value={s.name}>{s.name}</option>
+        <option key={s.name} value={s.name}>{s.label}</option>
       ))}
     </select>
   );
